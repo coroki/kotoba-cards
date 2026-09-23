@@ -1,0 +1,1541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kotoba">
+<meta name="theme-color" content="#2B4A8C">
+<title>Kotoba Cards</title>
+<style>
+  :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; -webkit-text-size-adjust: 100%; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #EEF0F5;
+    --card: #FFFFFF;
+    --ink: #1A2038;
+    --muted: #5E6580;
+    --line: #D6DAE6;
+    --ai: #2B4A8C;
+    --ai-soft: #E3E9F6;
+    --on-ai: #FFFFFF;
+    --good: #3F7A4C;
+    --good-soft: #E2F0E4;
+    --again: #A8561C;
+    --again-soft: #F7E8DC;
+    --new: #B9C0D4;
+    --backdrop: rgba(20, 26, 48, .42);
+    --shadow: 0 1px 2px rgba(26,32,56,.06), 0 12px 32px -12px rgba(26,32,56,.18);
+    --jp: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    --disp: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground: #0F1324; --card: #181E36; --ink: #E8EBF5; --muted: #9AA2BF;
+      --line: #2C3454; --ai: #8FA9E8; --ai-soft: #232D50; --on-ai: #0F1324;
+      --good: #7FC08C; --good-soft: #1D3325; --again: #E8A273; --again-soft: #3A2718;
+      --new: #3A4366; --backdrop: rgba(0,0,0,.6);
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 40px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground: #0F1324; --card: #181E36; --ink: #E8EBF5; --muted: #9AA2BF;
+    --line: #2C3454; --ai: #8FA9E8; --ai-soft: #232D50; --on-ai: #0F1324;
+    --good: #7FC08C; --good-soft: #1D3325; --again: #E8A273; --again-soft: #3A2718;
+    --new: #3A4366; --backdrop: rgba(0,0,0,.6);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 16px 40px -16px rgba(0,0,0,.6);
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--ground); color: var(--ink);
+    font-family: var(--disp); font-size: 16px;
+    padding-inline: 16px;
+  }
+  .app {
+    max-width: 520px; margin: 0 auto; min-height: 100%;
+    display: flex; flex-direction: column; gap: 30px;
+    padding-block: 36px 32px;
+  }
+
+  #stage { display: flex; flex-direction: column; gap: 24px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+  .brand { font-weight: 700; font-size: 20px; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 8px; }
+  .brand .kanji { font-family: var(--jp); font-weight: 700; color: var(--ai); }
+  .count { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  .card {
+    background: var(--card); border-radius: 18px; box-shadow: var(--shadow);
+    padding: 34px 30px 30px; display: flex; flex-direction: column; gap: 30px;
+    border: 1px solid var(--line);
+  }
+  .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; }
+  h2.title { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+
+  /* ---------- Setup ---------- */
+  .section { display: flex; flex-direction: column; gap: 14px; }
+  .summary { display: flex; flex-direction: column; gap: 14px; }
+  .bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--new); gap: 2px; }
+  .bar span { display: block; height: 100%; }
+  .bar .m { background: var(--good); }
+  .bar .l { background: var(--again); }
+  .bar .n { background: var(--new); flex: 1; }
+  .legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .legend div { display: flex; flex-direction: column; gap: 2px; }
+  .legend b { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .legend span { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  .options { display: grid; gap: 10px; }
+  .opt {
+    display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-radius: 14px;
+    border: 1.5px solid var(--line); cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .opt:hover { border-color: var(--ai); }
+  .opt input { accent-color: var(--ai); margin: 3px 0 0; width: 18px; height: 18px; flex: none; }
+  .opt:has(input:checked) { border-color: var(--ai); background: var(--ai-soft); }
+  .opt:has(input:focus-visible) { outline: 2.5px solid var(--ai); outline-offset: 2px; }
+  .opt strong { display: block; font-size: 16px; }
+  .opt small { display: block; color: var(--muted); font-size: 14px; margin-top: 3px; line-height: 1.4; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip { position: relative; }
+  .chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .chip span {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px;
+    border: 1.5px solid var(--line); font-size: 15px; font-weight: 600; color: var(--ink); transition: all .15s;
+  }
+  .chip span em { font-style: normal; font-weight: 400; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .chip input:checked + span { background: var(--ai); border-color: var(--ai); color: var(--on-ai); }
+  .chip input:checked + span em { color: var(--on-ai); opacity: .8; }
+  .chip input:focus-visible + span { outline: 2.5px solid var(--ai); outline-offset: 2px; }
+
+  .start { display: flex; flex-direction: column; gap: 10px; }
+  .primary {
+    appearance: none; border: 0; border-radius: 14px; padding: 16px; font: inherit; font-weight: 700; font-size: 17px;
+    background: var(--ai); color: var(--on-ai); cursor: pointer; transition: filter .15s;
+  }
+  .primary:hover { filter: brightness(1.08); }
+  .primary:disabled { opacity: .45; cursor: default; filter: none; }
+  .note { font-size: 14px; color: var(--muted); text-align: center; line-height: 1.45; }
+
+  .settings { display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: var(--muted); }
+  .settings .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .settings select { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; max-width: 100%; }
+  .link { appearance: none; background: none; border: 0; padding: 0; font: inherit; font-size: 14px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .link:hover { color: var(--ai); }
+  .link.danger { color: var(--again); }
+  .sync { font-size: 13px; }
+
+  /* ---------- Study ---------- */
+  .prompt { display: flex; flex-direction: column; gap: 14px; }
+  .english { font-size: clamp(28px, 7vw, 36px); font-weight: 700; line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; }
+  .context { color: var(--muted); font-size: 15px; line-height: 1.45; }
+  .kana { font-family: var(--jp); font-weight: 700; font-size: clamp(22px, 5.5vw, 26px); line-height: 1.3; letter-spacing: .02em; overflow-wrap: anywhere; }
+  .prompt .kana { font-size: clamp(26px, 6.5vw, 32px); }
+  .reading { font-family: var(--jp); font-size: 14px; color: var(--muted); margin-top: -8px; }
+  .romaji-lg { font-size: 18px; font-weight: 600; color: var(--muted); }
+
+  .reveal-btn {
+    appearance: none; border: 1.5px dashed var(--line); background: transparent; color: var(--ai);
+    border-radius: 14px; padding: 34px 16px; font: inherit; font-weight: 600; font-size: 16px;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: background .15s, border-color .15s;
+  }
+  .reveal-btn:hover { background: var(--ai-soft); border-color: var(--ai); }
+  .reveal-btn .hint { font-weight: 400; font-size: 13px; color: var(--muted); }
+
+  .answer { display: flex; flex-direction: column; gap: 26px; border-top: 1px solid var(--line); padding-top: 30px; }
+  .answer.enter { animation: rise .28s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .rows { display: grid; grid-template-columns: auto 1fr; gap: 16px 20px; align-items: baseline; margin: 0; }
+  .rows dt { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
+  .rows dd { margin: 0; min-width: 0; }
+  .romaji { font-size: 20px; font-weight: 600; }
+
+  .syl-wrap { display: flex; flex-direction: column; gap: 8px; }
+  .syls { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .word { display: inline-flex; gap: 3px; flex-wrap: wrap; }
+  .syl {
+    appearance: none; font-family: var(--mono); font-size: 15px; color: var(--ai);
+    background: var(--ai-soft); border: 1px solid transparent; border-radius: 7px;
+    padding: 4px 7px; cursor: pointer; transition: border-color .12s, transform .1s;
+  }
+  .syl:hover { border-color: var(--ai); }
+  .syl:active, .syl.speaking { transform: scale(.94); border-color: var(--ai); }
+  .syl-cap { font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .syl.blank { background: transparent; border: 1px dashed var(--line); color: var(--muted); cursor: default; transform: none; }
+
+  .audio { display: flex; gap: 12px; flex-wrap: wrap; }
+  .play {
+    flex: 1 1 140px; appearance: none; border: 1.5px solid var(--ai); border-radius: 12px;
+    padding: 12px 14px; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--ai); color: var(--on-ai); transition: transform .1s, filter .15s;
+  }
+  .play.slow { background: transparent; color: var(--ai); }
+  .play:hover { filter: brightness(1.08); }
+  .play:active { transform: scale(.98); }
+  .play .speed { font-family: var(--mono); font-size: 13px; opacity: .85; }
+  .play svg { width: 16px; height: 16px; flex: none; }
+  .play.speaking svg .bar { animation: pulse .6s ease-in-out infinite alternate; transform-origin: center; }
+  .play.speaking svg .bar:nth-child(2) { animation-delay: .2s; }
+  .play.speaking svg .bar:nth-child(3) { animation-delay: .4s; }
+  @keyframes pulse { from { transform: scaleY(.4); } to { transform: scaleY(1); } }
+  .voice-warn { font-size: 13px; color: var(--again); line-height: 1.45; }
+
+  .more-btn {
+    appearance: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line);
+    background: transparent; color: var(--ink); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; text-align: left;
+  }
+  .more-btn:hover { border-color: var(--ai); color: var(--ai); }
+  .more-btn small { font-weight: 400; color: var(--muted); font-size: 13px; }
+  .more-btn .chev { font-size: 18px; color: var(--muted); }
+
+  .grade { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grade button {
+    appearance: none; border-radius: 12px; padding: 14px 10px; font: inherit; font-weight: 600; font-size: 15px;
+    cursor: pointer; border: 1.5px solid transparent;
+  }
+  .btn-again { background: var(--again-soft); color: var(--again); }
+  .btn-again:hover { border-color: var(--again); }
+  .btn-good { background: var(--good-soft); color: var(--good); }
+  .btn-good:hover { border-color: var(--good); }
+
+  .nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .ghost {
+    appearance: none; background: transparent; border: 1px solid var(--line); color: var(--ink);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .ghost:hover { border-color: var(--ai); color: var(--ai); }
+
+  .done { text-align: center; align-items: center; }
+  .done .big { font-family: var(--jp); font-size: 36px; font-weight: 700; color: var(--ai); }
+  .done p { margin: 0; color: var(--muted); line-height: 1.5; }
+  .done .summary { width: 100%; text-align: left; }
+
+  /* ---------- Drawer ---------- */
+  dialog.drawer {
+    margin: auto auto 0; padding: 0; border: 0; width: min(560px, 100%); max-width: 100%;
+    max-height: 85vh; border-radius: 22px 22px 0 0; background: var(--card); color: var(--ink);
+    box-shadow: 0 -12px 40px -12px rgba(0,0,0,.35);
+  }
+  dialog.drawer[open] { animation: slide .26s ease-out; }
+  dialog.drawer::backdrop { background: var(--backdrop); }
+  @keyframes slide { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .drawer-inner {
+    padding: 14px 26px calc(30px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; gap: 26px; overflow-y: auto; max-height: 85vh; box-sizing: border-box;
+  }
+  .grip { width: 40px; height: 4px; border-radius: 4px; background: var(--line); margin: 0 auto; }
+  .drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .drawer-head .kana { font-size: 24px; }
+  .drawer-head .en { color: var(--muted); font-size: 15px; margin-top: 4px; }
+  .x { appearance: none; border: 1px solid var(--line); background: transparent; color: var(--ink); width: 34px; height: 34px; border-radius: 50%; font-size: 18px; line-height: 1; cursor: pointer; flex: none; }
+  .x:hover { border-color: var(--ai); color: var(--ai); }
+  .dsec { display: flex; flex-direction: column; gap: 10px; }
+  .dsec p { margin: 0; line-height: 1.55; font-size: 15px; }
+  .breakdown { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; }
+  .breakdown li { display: grid; grid-template-columns: minmax(90px, auto) 1fr; gap: 14px; padding: 12px 14px; align-items: baseline; }
+  .breakdown li + li { border-top: 1px solid var(--line); }
+  .breakdown .term { font-weight: 600; }
+  .breakdown .term span { display: block; font-family: var(--jp); font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .breakdown .mean { color: var(--muted); font-size: 15px; line-height: 1.45; }
+  .tip { font-size: 15px; line-height: 1.55; background: var(--ai-soft); border-radius: 12px; padding: 14px 16px; }
+
+  button:focus-visible, select:focus-visible { outline: 2.5px solid var(--ai); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    .answer.enter, dialog.drawer[open] { animation: none; }
+    .play.speaking svg .bar { animation: none; }
+  }
+  @media (max-width: 420px) {
+    .card { padding: 26px 20px 22px; }
+    .drawer-inner { padding-inline: 20px; }
+    .rows { grid-template-columns: 1fr; gap: 6px; }
+    .rows dd + dt { margin-top: 12px; }
+  }
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <header>
+    <div class="brand"><span class="kanji">言葉</span><span>Kotoba Cards</span></div>
+    <span class="count" id="count"></span>
+  </header>
+  <main id="stage"></main>
+</div>
+
+<dialog class="drawer" id="drawer" aria-labelledby="drawer-title">
+  <div class="drawer-inner" id="drawer-body"></div>
+</dialog>
+
+<script>
+/* ============ Phrase data ============ */
+const CATEGORIES = [
+  { id: "greet", name: "Greetings & manners" },
+  { id: "basics", name: "Conversation" },
+  { id: "travel", name: "Transit & directions" },
+  { id: "hotel", name: "Hotels" },
+  { id: "shopping", name: "Shopping" },
+  { id: "dining", name: "Dining" },
+  { id: "help", name: "Help & health" },
+  { id: "heard", name: "Things you'll hear" }
+];
+
+// Reused syllable groups
+const ONEGAI = [["oh","お"],["neh","ね"],["gai","がい"],["shee","し"],["mahs","ます"]];
+const KUDASAI = [["koo","く"],["dah","だ"],["sai","さい"]];
+const DESU = [["dess","です"]], KA = [["kah","か"]], WA = [["wah","わ"]], O = [["oh","お"]];
+const DOKO = [["doh","ど"],["koh","こ"]];
+
+// syl: words → syllables as [shown sound, kana spoken when tapped]
+// words: [romaji, Japanese, meaning]
+const PHRASES = [
+  /* ---------- Greetings & manners ---------- */
+  {
+    id: "konnichiwa", cat: "greet",
+    en: "Hello.", context: "The everyday daytime greeting.",
+    jp: "こんにちは", romaji: "konnichiwa",
+    syl: [[["koh","こ"],["n","ん"],["nee","に"],["chee","ち"],["wah","わ"]]],
+    situation: "Walking into a small shop, or greeting the front desk at your hotel in the afternoon.",
+    words: [["konnichi","こんにち","today"],["wa","は","topic marker — roughly “as for today…”"]],
+    tip: "The final は is read “wa”, not “ha” — a leftover from older spelling. Hold the double “n” for a beat: kon‑nichiwa."
+  },
+  {
+    id: "ohayou", cat: "greet",
+    en: "Good morning.", context: "Polite morning greeting, used until about 10–11 a.m.",
+    jp: "おはようございます", romaji: "ohayō gozaimasu",
+    syl: [[["oh","お"],["hah","は"],["yoh","よう"]],[["goh","ご"],["zai","ざい"],["mahs","ます"]]],
+    situation: "Greeting hotel staff, a host family, or coworkers when you first see them in the morning.",
+    words: [["ohayō","おはよう","early (from hayai, “early”)"],["gozaimasu","ございます","polite ending"]],
+    tip: "With friends, just ohayō is fine. The line over the ō means hold that vowel a little longer."
+  },
+  {
+    id: "konbanwa", cat: "greet",
+    en: "Good evening.", context: "Evening greeting, from around sunset.",
+    jp: "こんばんは", romaji: "konbanwa",
+    syl: [[["kohn","こん"],["bahn","ばん"],["wah","わ"]]],
+    situation: "Arriving at a restaurant or izakaya for dinner, or meeting someone in the evening.",
+    words: [["konban","今晩","this evening"],["wa","は","topic marker"]],
+    tip: "Like konnichiwa, the final は is read “wa”. The “n” before “b” drifts toward an “m”: kom‑ban‑wa."
+  },
+  {
+    id: "arigatou", cat: "greet",
+    en: "Thank you very much.", context: "Polite thanks — to a shopkeeper, host, or anyone who helped you.",
+    jp: "ありがとうございます", romaji: "arigatō gozaimasu",
+    syl: [[["ah","あ"],["ree","り"],["gah","が"],["toh","とう"]],[["goh","ご"],["zai","ざい"],["mahs","ます"]]],
+    situation: "A shop assistant hands you your change and bag, or someone holds a door for you.",
+    words: [["arigatō","ありがとう","thanks (from arigatai, “rare, precious”)"],["gozaimasu","ございます","polite ending"]],
+    tip: "The final “u” in gozaimasu is almost silent — it ends in “mahs”, not “mah‑soo”."
+  },
+  {
+    id: "sumimasen", cat: "greet",
+    en: "Excuse me. / I'm sorry.", context: "Getting someone's attention, squeezing past, or a light apology.",
+    jp: "すみません", romaji: "sumimasen",
+    syl: [[["soo","す"],["mee","み"],["mah","ま"],["sen","せん"]]],
+    situation: "Calling a waiter over, or edging past someone on a crowded train.",
+    words: [["sumimasen","すみません","from sumu, “to be settled”, in the polite negative — roughly “this isn't settled”, i.e. I owe you"]],
+    tip: "Keep every syllable short and even. In fast speech it often sounds like “suimasen”."
+  },
+  {
+    id: "onegaishimasu", cat: "greet",
+    en: "Please.", context: "A polite request — attach it to a noun to ask for that thing.",
+    jp: "お願いします", reading: "おねがいします", romaji: "onegaishimasu",
+    syl: [ONEGAI],
+    situation: "Handing a taxi driver an address, or pointing at a menu item: “Kore, onegaishimasu.”",
+    words: [["o‑","お","polite prefix"],["negai","願い","wish, request"],["shimasu","します","to do (polite)"]],
+    tip: "One of the most useful phrases in Japan. The ending sounds like “shee‑mahs”."
+  },
+  {
+    id: "daijoubu", cat: "greet",
+    en: "It's okay. / No thanks.", context: "“I'm fine” — also a polite way to decline an offer.",
+    jp: "大丈夫です", reading: "だいじょうぶです", romaji: "daijōbu desu",
+    syl: [[["dai","だい"],["joh","じょう"],["boo","ぶ"]], DESU],
+    situation: "A clerk asks if you need a bag, or someone checks you're alright after a stumble.",
+    words: [["daijōbu","大丈夫","okay, all right"],["desu","です","polite “is”"]],
+    tip: "With a small hand wave it means “no thanks”. Desu sounds like “dess”."
+  },
+  {
+    id: "arigatougozaimashita", cat: "greet",
+    en: "Thank you (as you leave).", context: "Past-tense thanks, once a service is finished.",
+    jp: "ありがとうございました", romaji: "arigatō gozaimashita",
+    syl: [[["ah","あ"],["ree","り"],["gah","が"],["toh","とう"]],[["goh","ご"],["zai","ざい"],["mahsh","まし"],["tah","た"]]],
+    situation: "Leaving a restaurant after paying, or getting out of a taxi. Staff say it to you too.",
+    words: [["arigatō","ありがとう","thanks"],["gozaimashita","ございました","polite ending, past tense — for something that's finished"]],
+    tip: "Use gozaimasu while the help is happening and gozaimashita once it's done. The “shi” is whispered: go‑zai‑mash‑ta."
+  },
+  {
+    id: "douzo", cat: "greet",
+    en: "Here you go. / Go ahead.", context: "Offering something, or letting someone go first.",
+    jp: "どうぞ", romaji: "dōzo",
+    syl: [[["doh","どう"],["zoh","ぞ"]]],
+    situation: "Holding a door, letting someone into the elevator first, or handing over your passport.",
+    words: [["dōzo","どうぞ","please (go ahead / take it)"]],
+    tip: "You'll hear it constantly from staff. A small nod or “arigatō gozaimasu” is the usual reply."
+  },
+  {
+    id: "sayounara", cat: "greet",
+    en: "Goodbye.", context: "A final-sounding goodbye — less common day to day than you'd expect.",
+    jp: "さようなら", romaji: "sayōnara",
+    syl: [[["sah","さ"],["yoh","よう"],["nah","な"],["rah","ら"]]],
+    situation: "Parting from someone you won't see for a while. For everyday goodbyes, people usually say “ja, mata” (see you).",
+    words: [["sayōnara","さようなら","from “sayō naraba” — “if that's how it is, then…”"]],
+    tip: "The Japanese “r” is a light tap somewhere between r, l and d — like the “tt” in a quick American “butter”."
+  },
+  {
+    id: "oyasumi", cat: "greet",
+    en: "Good night.", context: "Said before bed, or when parting late at night.",
+    jp: "おやすみなさい", romaji: "oyasumi nasai",
+    syl: [[["oh","お"],["yah","や"],["soo","す"],["mee","み"]],[["nah","な"],["sai","さい"]]],
+    situation: "Saying good night to your host family or friends at the end of the day.",
+    words: [["oyasumi","お休み","rest (from yasumu, “to rest”)"],["nasai","なさい","gentle command — “please (do)”"]],
+    tip: "Friends shorten it to oyasumi. The “su” is light: o‑ya‑s'mi."
+  },
+  {
+    id: "hajimemashite", cat: "greet",
+    en: "Nice to meet you.", context: "Said only the first time you meet someone.",
+    jp: "はじめまして", romaji: "hajimemashite",
+    syl: [[["hah","は"],["jee","じ"],["meh","め"],["mahsh","まし"],["teh","て"]]],
+    situation: "Being introduced to a new colleague, a host, or a friend of a friend.",
+    words: [["hajimemashite","はじめまして","set phrase meaning roughly “for the first time”"]],
+    tip: "The “i” in “shi” is nearly silent: ha‑ji‑me‑mash‑te. Follow it with your name and a small bow."
+  },
+  {
+    id: "douitashimashite", cat: "greet",
+    en: "You're welcome.", context: "A formal reply to thanks.",
+    jp: "どういたしまして", romaji: "dō itashimashite",
+    syl: [[["doh","どう"]],[["ee","い"],["tah","た"],["shee","し"],["mahsh","まし"],["teh","て"]]],
+    situation: "Someone thanks you for helping them with directions.",
+    words: [["dō","どう","how"],["itashimashite","いたしまして","humble “did” — roughly “what did I do?”"]],
+    tip: "Day to day, people often just wave a hand and say iie, iie (“no, no”) instead."
+  },
+  {
+    id: "osoreirimasu", cat: "greet",
+    en: "Sorry to trouble you. / Thank you kindly.", context: "A very polite blend of thanks and apology.",
+    jp: "恐れ入ります", reading: "おそれいります", romaji: "osoreirimasu",
+    syl: [[["oh","お"],["soh","そ"],["reh","れ"],["ee","い"],["ree","り"],["mahs","ます"]]],
+    situation: "Asking a hotel concierge for a favour, or thanking someone who went out of their way.",
+    words: [["osore","恐れ","awe"],["irimasu","入ります","to enter (polite) — roughly “I'm humbled”"]],
+    tip: "Staff use it with customers all the time. From you it sounds very polished; sumimasen works in the same spots."
+  },
+  {
+    id: "osewa", cat: "greet",
+    en: "Thank you for everything.", context: "Formal thanks for someone's care or help over a period of time.",
+    jp: "お世話になりました", reading: "おせわに なりました", romaji: "osewa ni narimashita",
+    syl: [[["oh","お"],["seh","せ"],["wah","わ"]],[["nee","に"]],[["nah","な"],["ree","り"],["mahsh","まし"],["tah","た"]]],
+    situation: "Checking out of a ryokan, leaving a host family, or on your last day working with someone.",
+    words: [["osewa","お世話","care, looking after"],["ni narimashita","になりました","have received (polite past)"]],
+    tip: "At work, the present form osewa ni natte orimasu (“thank you for your continued support”) opens many business emails and calls."
+  },
+
+  /* ---------- Conversation ---------- */
+  {
+    id: "hai", cat: "basics",
+    en: "Yes.", context: "Yes — but also “I'm listening” or “here you go”.",
+    jp: "はい", romaji: "hai",
+    syl: [[["hai","はい"]]],
+    situation: "Answering a question, or when someone calls your name.",
+    words: [["hai","はい","yes; I hear you"]],
+    tip: "Hai doesn't always mean agreement — often it just means “I'm following you”."
+  },
+  {
+    id: "iie", cat: "basics",
+    en: "No.", context: "A direct no — often softened in practice.",
+    jp: "いいえ", romaji: "iie",
+    syl: [[["ee","い"],["ee","い"],["eh","え"]]],
+    situation: "Answering “Are you Japanese?” — or modestly brushing off a compliment.",
+    words: [["iie","いいえ","no"]],
+    tip: "Three quick vowels: ee‑ee‑eh. To decline an offer, daijōbu desu sounds softer."
+  },
+  {
+    id: "wakarimasen", cat: "basics",
+    en: "I don't understand.", context: "When you've lost the thread of the conversation.",
+    jp: "わかりません", romaji: "wakarimasen",
+    syl: [[["wah","わ"],["kah","か"],["ree","り"],["mah","ま"],["sen","せん"]]],
+    situation: "Someone speaks quickly to you in Japanese and you can't follow.",
+    words: [["wakaru","わかる","to understand"],["‑masen","ません","polite negative"]],
+    tip: "Soften it with sumimasen first: “Sumimasen, wakarimasen.”"
+  },
+  {
+    id: "wakarimashita", cat: "basics",
+    en: "I understand. / Got it.", context: "Confirms you've understood instructions or a request.",
+    jp: "わかりました", romaji: "wakarimashita",
+    syl: [[["wah","わ"],["kah","か"],["ree","り"],["mahsh","まし"],["tah","た"]]],
+    situation: "After someone explains the way to the station or how the ticket machine works.",
+    words: [["wakaru","わかる","to understand"],["‑mashita","ました","polite past"]],
+    tip: "The “shi” is whispered: wa‑ka‑ri‑mash‑ta."
+  },
+  {
+    id: "eigo", cat: "basics",
+    en: "Do you speak English?", context: "A polite check before switching languages.",
+    jp: "英語を話せますか", reading: "えいごを はなせますか", romaji: "eigo o hanasemasu ka",
+    syl: [[["ay","えい"],["goh","ご"]], O, [["hah","は"],["nah","な"],["seh","せ"],["mahs","ます"]], KA],
+    situation: "Asking a station attendant or shop clerk for help.",
+    words: [["eigo","英語","English (language)"],["o","を","object marker"],["hanasemasu","話せます","can speak (polite)"],["ka","か","question marker"]],
+    tip: "No rising tone needed — the か at the end already makes it a question."
+  },
+  {
+    id: "mouichido", cat: "basics",
+    en: "One more time, please.", context: "Asking someone to repeat what they said.",
+    jp: "もう一度お願いします", reading: "もう いちど おねがいします", romaji: "mō ichido onegaishimasu",
+    syl: [[["moh","もう"]],[["ee","い"],["chee","ち"],["doh","ど"]], ONEGAI],
+    situation: "You missed a price or a platform number the first time.",
+    words: [["mō","もう","more, again"],["ichido","一度","one time"],["onegaishimasu","お願いします","please"]],
+    tip: "If they spoke fast, combine it with the next card: “Mō ichido, yukkuri onegaishimasu.”"
+  },
+  {
+    id: "sukoshimatte", cat: "basics",
+    en: "Just a moment, please.", context: "Politely asking someone to wait briefly.",
+    jp: "少し待ってください", reading: "すこし まって ください", romaji: "sukoshi matte kudasai",
+    syl: [[["soo","す"],["koh","こ"],["shee","し"]],[["maht","まっ"],["teh","て"]], KUDASAI],
+    situation: "Digging through your bag for your wallet while the cashier waits.",
+    words: [["sukoshi","少し","a little"],["matte","待って","wait"],["kudasai","ください","please"]],
+    tip: "The small っ in matte is a tiny pause: mat‑te. Staff will say the extra-polite version to you: shōshō omachi kudasai."
+  },
+  {
+    id: "moushimasu", cat: "basics",
+    en: "My name is ___.", context: "A formal way to introduce yourself.",
+    jp: "〇〇と申します", reading: "〇〇と もうします", romaji: "___ to mōshimasu",
+    say: "スミスと申します", sayNote: "Sumisu to mōshimasu — “My name is Smith.”",
+    syl: [[["___",""]],[["toh","と"]],[["moh","もう"],["shee","し"],["mahs","ます"]]],
+    situation: "Introducing yourself at check-in, at a meeting, or to a host family.",
+    words: [["___","〇〇","your name"],["to","と","quoting particle — “as”"],["mōshimasu","申します","am called (humble)"]],
+    tip: "More formal than “___ desu”. Japanese often writes a blank as 〇〇, read “maru‑maru”."
+  },
+  {
+    id: "kanada", cat: "basics",
+    en: "I'm from Canada.", context: "Telling people where you're from.",
+    jp: "カナダから来ました", reading: "カナダから きました", romaji: "Kanada kara kimashita",
+    syl: [[["kah","カ"],["nah","ナ"],["dah","ダ"]],[["kah","か"],["rah","ら"]],[["kee","き"],["mahsh","まし"],["tah","た"]]],
+    situation: "Answering “Dochira kara desu ka?” — Where are you from?",
+    words: [["Kanada","カナダ","Canada"],["kara","から","from"],["kimashita","来ました","came (polite past)"]],
+    tip: "Swap in any country or city. Foreign place names are written in katakana."
+  },
+  {
+    id: "sukoshidake", cat: "basics",
+    en: "I only speak a little Japanese.", context: "Setting expectations before a conversation.",
+    jp: "日本語は少しだけ話せます", reading: "にほんごは すこしだけ はなせます", romaji: "nihongo wa sukoshi dake hanasemasu",
+    syl: [[["nee","に"],["hohn","ほん"],["goh","ご"]], WA, [["soo","す"],["koh","こ"],["shee","し"]],[["dah","だ"],["keh","け"]],[["hah","は"],["nah","な"],["seh","せ"],["mahs","ます"]]],
+    situation: "Someone starts speaking quickly, or compliments your Japanese.",
+    words: [["nihongo","日本語","Japanese (language)"],["wa","は","topic marker"],["sukoshi dake","少しだけ","only a little"],["hanasemasu","話せます","can speak (polite)"]],
+    tip: "Expect a friendly “Jōzu desu ne!” (You're good!). The modest reply is “Iie, mada mada desu” — not yet."
+  },
+  {
+    id: "korewanan", cat: "basics",
+    en: "What is this?", context: "Asking about food, an item, or a sign.",
+    jp: "これは何ですか", reading: "これは なんですか", romaji: "kore wa nan desu ka",
+    syl: [[["koh","こ"],["reh","れ"]], WA, [["nahn","なん"]], DESU, KA],
+    situation: "Pointing at an unfamiliar dish, snack, or sign.",
+    words: [["kore","これ","this"],["wa","は","topic marker"],["nan","何","what"],["desu ka","ですか","polite “is it?”"]],
+    tip: "For something near the other person use sore (that); for something over there, are."
+  },
+  {
+    id: "imi", cat: "basics",
+    en: "What does ___ mean?", context: "Asking about a word you heard or read.",
+    jp: "〇〇はどういう意味ですか", reading: "〇〇は どういう いみですか", romaji: "___ wa dō iu imi desu ka",
+    say: "「おすすめ」はどういう意味ですか", sayNote: "“Osusume” wa dō iu imi desu ka — “What does osusume mean?”",
+    syl: [[["___",""]], WA, [["doh","どう"],["yoo","いう"]],[["ee","い"],["mee","み"]], DESU, KA],
+    situation: "A server uses a word you don't know, or you spot one on a sign.",
+    words: [["___","〇〇","the word you're asking about"],["wa","は","topic marker"],["dō iu","どういう","what kind of"],["imi","意味","meaning"],["desu ka","ですか","polite question"]],
+    tip: "“Dō iu” is pronounced “doh yoo”."
+  },
+  {
+    id: "shashin", cat: "basics",
+    en: "May I take a photo?", context: "Asking before photographing people, shops, or temple interiors.",
+    jp: "写真を撮ってもいいですか", reading: "しゃしんを とっても いいですか", romaji: "shashin o totte mo ii desu ka",
+    syl: [[["shah","しゃ"],["sheen","しん"]], O, [["toht","とっ"],["teh","て"],["moh","も"]],[["ee","いい"]], DESU, KA],
+    situation: "At a market stall, a restaurant with a beautiful food display, or a shrine.",
+    words: [["shashin","写真","photo"],["o","を","object marker"],["totte mo ii","撮ってもいい","is it okay to take"],["desu ka","ですか","polite question"]],
+    tip: "Many temples, shops and museums don't allow photos — look for a camera sign with a line through it."
+  },
+
+  /* ---------- Transit & directions ---------- */
+  {
+    id: "toire", cat: "travel",
+    en: "Where is the toilet?", context: "Possibly the most useful question you'll ask.",
+    jp: "トイレはどこですか", romaji: "toire wa doko desu ka",
+    syl: [[["toh","ト"],["ee","イ"],["reh","レ"]], WA, DOKO, DESU, KA],
+    situation: "At a station, restaurant, or shopping center.",
+    words: [["toire","トイレ","toilet (from English)"],["wa","は","topic marker"],["doko","どこ","where"],["desu ka","ですか","polite “is it?”"]],
+    tip: "Swap in any place before wa — eki (station), hoteru (hotel). Otearai is a more polite word for toilet."
+  },
+  {
+    id: "densha", cat: "travel",
+    en: "Does this train go to Tokyo?", context: "Double-checking you're on the right train.",
+    jp: "この電車は東京に行きますか", reading: "この でんしゃは とうきょうに いきますか", romaji: "kono densha wa Tōkyō ni ikimasu ka",
+    syl: [[["koh","こ"],["noh","の"]],[["dehn","でん"],["shah","しゃ"]], WA, [["toh","とう"],["kyoh","きょう"]],[["nee","に"]],[["ee","い"],["kee","き"],["mahs","ます"]], KA],
+    situation: "On a busy platform, asking station staff or a fellow passenger.",
+    words: [["kono","この","this"],["densha","電車","train"],["wa","は","topic marker"],["Tōkyō ni","東京に","to Tokyo"],["ikimasu ka","行きますか","does it go?"]],
+    tip: "Swap in any destination. Tōkyō is two syllables with long vowels — “Toh‑kyoh”, not “Toe‑key‑oh”."
+  },
+  {
+    id: "kokomade", cat: "travel",
+    en: "To this address, please.", context: "Showing a taxi driver where you want to go.",
+    jp: "ここまでお願いします", reading: "ここまで おねがいします", romaji: "koko made onegaishimasu",
+    syl: [[["koh","こ"],["koh","こ"]],[["mah","ま"],["deh","で"]], ONEGAI],
+    situation: "Holding up an address or a map pin on your phone in a taxi.",
+    words: [["koko","ここ","here"],["made","まで","up to, as far as"],["onegaishimasu","お願いします","please"]],
+    tip: "Taxi rear doors open and close automatically — let the driver handle them."
+  },
+  {
+    id: "kippu", cat: "travel",
+    en: "Where can I buy a ticket?", context: "Finding the ticket machines or counter.",
+    jp: "切符はどこで買えますか", reading: "きっぷは どこで かえますか", romaji: "kippu wa doko de kaemasu ka",
+    syl: [[["keep","きっ"],["poo","ぷ"]], WA, [["doh","ど"],["koh","こ"],["deh","で"]],[["kah","か"],["eh","え"],["mahs","ます"]], KA],
+    situation: "At a station entrance, before the ticket gates.",
+    words: [["kippu","切符","ticket"],["wa","は","topic marker"],["doko de","どこで","where (at)"],["kaemasu ka","買えますか","can I buy?"]],
+    tip: "Most travelers skip paper tickets and use a rechargeable IC card like Suica or PASMO."
+  },
+  {
+    id: "konbini", cat: "travel",
+    en: "Is there a convenience store nearby?", context: "Konbini sell food and essentials, and most have ATMs.",
+    jp: "近くにコンビニはありますか", reading: "ちかくに コンビニは ありますか", romaji: "chikaku ni konbini wa arimasu ka",
+    syl: [[["chee","ち"],["kah","か"],["koo","く"]],[["nee","に"]],[["kohn","コン"],["bee","ビ"],["nee","ニ"]], WA, [["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Looking for snacks, an ATM, or somewhere to top up your IC card.",
+    words: [["chikaku ni","近くに","nearby"],["konbini","コンビニ","convenience store"],["wa arimasu ka","はありますか","is there?"]],
+    tip: "Konbini ATMs, especially at 7‑Eleven, are the most reliable place to use a foreign card."
+  },
+  {
+    id: "tooi", cat: "travel",
+    en: "Is it far?", context: "Checking whether you can walk there.",
+    jp: "遠いですか", reading: "とおいですか", romaji: "tōi desu ka",
+    syl: [[["toh","とお"],["ee","い"]], DESU, KA],
+    situation: "Someone points you toward your hotel — is it a walk or a taxi?",
+    words: [["tōi","遠い","far"],["desu ka","ですか","polite question"]],
+    tip: "Listen for “aruite ___ pun” — ___ minutes on foot."
+  },
+  {
+    id: "douikeba", cat: "travel",
+    en: "How do I get to ___?", context: "Asking for directions to a place.",
+    jp: "〇〇にはどう行けばいいですか", reading: "〇〇には どう いけば いいですか", romaji: "___ ni wa dō ikeba ii desu ka",
+    say: "浅草にはどう行けばいいですか", sayNote: "Asakusa ni wa dō ikeba ii desu ka — “How do I get to Asakusa?”",
+    syl: [[["___",""]],[["nee","に"],["wah","わ"]],[["doh","どう"]],[["ee","い"],["keh","け"],["bah","ば"]],[["ee","いい"]], DESU, KA],
+    situation: "Asking station staff or a passer-by, map in hand.",
+    words: [["___ ni wa","〇〇には","to ___"],["dō","どう","how"],["ikeba ii","行けばいい","should I go"],["desu ka","ですか","polite question"]],
+    tip: "Show the place name on your phone as you ask — it helps a lot with unfamiliar names."
+  },
+  {
+    id: "donokurai", cat: "travel",
+    en: "How long does it take?", context: "Asking about travel time.",
+    jp: "どのくらいかかりますか", romaji: "dono kurai kakarimasu ka",
+    syl: [[["doh","ど"],["noh","の"]],[["koo","く"],["rai","らい"]],[["kah","か"],["kah","か"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Checking whether a walk is reasonable, or if you'll make your train.",
+    words: [["dono kurai","どのくらい","about how long / how much"],["kakarimasu","かかります","it takes (time or money)"],["ka","か","question marker"]],
+    tip: "Listen for ___‑pun (minutes) or ___‑jikan (hours) in the answer."
+  },
+  {
+    id: "tomarimasu", cat: "travel",
+    en: "Does this train stop at ___?", context: "Checking a train will stop where you need it to.",
+    jp: "この電車は〇〇に止まりますか", reading: "この でんしゃは 〇〇に とまりますか", romaji: "kono densha wa ___ ni tomarimasu ka",
+    say: "この電車は品川に止まりますか", sayNote: "Kono densha wa Shinagawa ni tomarimasu ka — “Does this train stop at Shinagawa?”",
+    syl: [[["koh","こ"],["noh","の"]],[["dehn","でん"],["shah","しゃ"]], WA, [["___",""]],[["nee","に"]],[["toh","と"],["mah","ま"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Express trains skip many stations — worth checking before you board.",
+    words: [["kono densha","この電車","this train"],["wa","は","topic marker"],["___ ni","〇〇に","at ___"],["tomarimasu ka","止まりますか","does it stop?"]],
+    tip: "Kaisoku (rapid) and kyūkō (express) trains skip stations; futsū (local) trains stop at every one."
+  },
+  {
+    id: "ichimai", cat: "travel",
+    en: "One ticket to ___, please.", context: "Buying a ticket at a counter.",
+    jp: "〇〇まで一枚お願いします", reading: "〇〇まで いちまい おねがいします", romaji: "___ made ichimai onegaishimasu",
+    say: "京都まで一枚お願いします", sayNote: "Kyōto made ichimai onegaishimasu — “One ticket to Kyoto, please.”",
+    syl: [[["___",""]],[["mah","ま"],["deh","で"]],[["ee","い"],["chee","ち"],["mai","まい"]], ONEGAI],
+    situation: "At a ticket office — for example, reserving a shinkansen seat.",
+    words: [["___ made","〇〇まで","to ___"],["ichimai","一枚","one (counter for flat things like tickets)"],["onegaishimasu","お願いします","please"]],
+    tip: "Two tickets is nimai, three is sanmai."
+  },
+  {
+    id: "basutei", cat: "travel",
+    en: "Where is the bus stop?", context: "Finding where to catch a bus.",
+    jp: "バス停はどこですか", reading: "バスていは どこですか", romaji: "basu‑tei wa doko desu ka",
+    syl: [[["bah","バ"],["soo","ス"],["tay","てい"]], WA, DOKO, DESU, KA],
+    situation: "Heading to a temple or neighbourhood the trains don't reach.",
+    words: [["basu‑tei","バス停","bus stop"],["wa","は","topic marker"],["doko desu ka","どこですか","where is it?"]],
+    tip: "Boarding varies by city — in Kyoto you usually get on at the back and pay at the front when you get off."
+  },
+  {
+    id: "ikuragurai", cat: "travel",
+    en: "About how much to ___?", context: "Asking a taxi driver for a rough fare.",
+    jp: "〇〇までいくらぐらいですか", romaji: "___ made ikura gurai desu ka",
+    say: "空港までいくらぐらいですか", sayNote: "Kūkō made ikura gurai desu ka — “About how much to the airport?”",
+    syl: [[["___",""]],[["mah","ま"],["deh","で"]],[["ee","い"],["koo","く"],["rah","ら"]],[["goo","ぐ"],["rai","らい"]], DESU, KA],
+    situation: "Before a long taxi ride, such as to the airport.",
+    words: [["___ made","〇〇まで","to ___"],["ikura","いくら","how much"],["gurai","ぐらい","about, roughly"],["desu ka","ですか","polite question"]],
+    tip: "Japanese taxis are metered, and there's no tipping."
+  },
+
+  /* ---------- Hotels ---------- */
+  {
+    id: "yoyaku", cat: "hotel",
+    en: "I have a reservation.", context: "The opening line at hotel check-in, or at a restaurant you booked.",
+    jp: "予約しています", reading: "よやく しています", romaji: "yoyaku shite imasu",
+    syl: [[["yoh","よ"],["yah","や"],["koo","く"]],[["shee","し"],["teh","て"]],[["ee","い"],["mahs","ます"]]],
+    situation: "At the front desk — follow it with your name and “desu”.",
+    words: [["yoyaku","予約","reservation"],["shite imasu","しています","have done (polite)"]],
+    tip: "In fast speech it becomes “yoyaku shitemasu”. Have your booking confirmation ready on your phone."
+  },
+  {
+    id: "chekkuin", cat: "hotel",
+    en: "Check-in, please.", context: "Starting check-in at the front desk.",
+    jp: "チェックインをお願いします", reading: "チェックインを おねがいします", romaji: "chekku‑in o onegaishimasu",
+    syl: [[["chehk","チェッ"],["koo","ク"],["een","イン"]], O, ONEGAI],
+    situation: "Walking up to the front desk with your luggage.",
+    words: [["chekku‑in","チェックイン","check-in (from English)"],["o","を","object marker"],["onegaishimasu","お願いします","please"]],
+    tip: "Japanese adds vowels to English loanwords: check → chek‑ku. Checkout works the same way: chekku‑auto."
+  },
+  {
+    id: "chekkuauto", cat: "hotel",
+    en: "What time is checkout?", context: "Checking your departure time.",
+    jp: "チェックアウトは何時ですか", reading: "チェックアウトは なんじですか", romaji: "chekku‑auto wa nanji desu ka",
+    syl: [[["chehk","チェッ"],["koo","ク"],["ow","アウ"],["toh","ト"]], WA, [["nahn","なん"],["jee","じ"]], DESU, KA],
+    situation: "At check-in, so you can plan your last morning.",
+    words: [["chekku‑auto","チェックアウト","checkout"],["wa","は","topic marker"],["nanji","何時","what time"],["desu ka","ですか","polite question"]],
+    tip: "Swap in chōshoku (breakfast) to ask about breakfast: “Chōshoku wa nanji desu ka?”"
+  },
+  {
+    id: "wifi", cat: "hotel",
+    en: "What's the Wi‑Fi password?", context: "Getting online at a hotel or café.",
+    jp: "Wi‑Fiのパスワードは何ですか", reading: "ワイファイの パスワードは なんですか", romaji: "waifai no pasuwādo wa nan desu ka",
+    syl: [[["wai","ワイ"],["fai","ファイ"]],[["noh","の"]],[["pah","パ"],["soo","ス"],["wah","ワー"],["doh","ド"]], WA, [["nahn","なん"]], DESU, KA],
+    situation: "Settling into your room or a café table.",
+    words: [["waifai","Wi‑Fi","Wi‑Fi"],["no","の","possessive — “of”"],["pasuwādo","パスワード","password"],["wa nan desu ka","は何ですか","what is it?"]],
+    tip: "Wi‑Fi is said “wai‑fai”. Many places print the password on a card at the counter."
+  },
+  {
+    id: "choushoku", cat: "hotel",
+    en: "Where is breakfast served?", context: "Finding the breakfast room.",
+    jp: "朝食会場はどこですか", reading: "ちょうしょく かいじょうは どこですか", romaji: "chōshoku kaijō wa doko desu ka",
+    syl: [[["choh","ちょう"],["shoh","しょ"],["koo","く"]],[["kai","かい"],["joh","じょう"]], WA, DOKO, DESU, KA],
+    situation: "Your first morning at the hotel.",
+    words: [["chōshoku","朝食","breakfast"],["kaijō","会場","venue, hall"],["wa","は","topic marker"],["doko desu ka","どこですか","where is it?"]],
+    tip: "Ask the time too: “Chōshoku wa nanji kara desu ka?” — What time does breakfast start?"
+  },
+  {
+    id: "resutoran", cat: "hotel",
+    en: "Can you recommend a restaurant nearby?", context: "Asking the front desk for a local tip.",
+    jp: "近くにおすすめのレストランはありますか", reading: "ちかくに おすすめの レストランは ありますか", romaji: "chikaku ni osusume no resutoran wa arimasu ka",
+    syl: [[["chee","ち"],["kah","か"],["koo","く"]],[["nee","に"]],[["oh","お"],["soo","す"],["soo","す"],["meh","め"]],[["noh","の"]],[["reh","レ"],["soo","ス"],["toh","ト"],["rahn","ラン"]], WA, [["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Asking the concierge where locals like to eat.",
+    words: [["chikaku ni","近くに","nearby"],["osusume no","おすすめの","recommended"],["resutoran","レストラン","restaurant"],["wa arimasu ka","はありますか","is there?"]],
+    tip: "Swap resutoran for izakaya (casual pub), rāmen‑ya (ramen shop) or sushi‑ya."
+  },
+
+  /* ---------- Shopping ---------- */
+  {
+    id: "ikura", cat: "shopping",
+    en: "How much is it?", context: "Asking a price.",
+    jp: "いくらですか", romaji: "ikura desu ka",
+    syl: [[["ee","い"],["koo","く"],["rah","ら"]], DESU, KA],
+    situation: "At a market stall, or when an item has no price tag.",
+    words: [["ikura","いくら","how much"],["desu ka","ですか","polite “is it?”"]],
+    tip: "Point and add kore wa to the front: “Kore wa ikura desu ka?” — How much is this?"
+  },
+  {
+    id: "kaado", cat: "shopping",
+    en: "Can I pay by card?", context: "Checking before you pay — cash is still common in small shops.",
+    jp: "カードは使えますか", reading: "カードは つかえますか", romaji: "kādo wa tsukaemasu ka",
+    syl: [[["kah","カー"],["doh","ド"]], WA, [["tsoo","つ"],["kah","か"],["eh","え"],["mahs","ます"]], KA],
+    situation: "At a small restaurant or shop with no card sign at the register.",
+    words: [["kādo","カード","card"],["wa","は","topic marker"],["tsukaemasu","使えます","can use (polite)"],["ka","か","question marker"]],
+    tip: "The “ts” in tsu sounds like the end of “cats”."
+  },
+  {
+    id: "shichaku", cat: "shopping",
+    en: "Can I try this on?", context: "Asking to use the fitting room.",
+    jp: "試着してもいいですか", reading: "しちゃく しても いいですか", romaji: "shichaku shite mo ii desu ka",
+    syl: [[["shee","し"],["chah","ちゃ"],["koo","く"]],[["shee","し"],["teh","て"],["moh","も"]],[["ee","いい"]], DESU, KA],
+    situation: "In a clothing store, holding up a shirt.",
+    words: [["shichaku","試着","trying on clothes"],["shite mo ii","してもいい","is it okay to do"],["desu ka","ですか","polite question"]],
+    tip: "“…shite mo ii desu ka?” means “May I…?” — swap in other verbs to ask permission for anything."
+  },
+  {
+    id: "arimasuka", cat: "shopping",
+    en: "Do you have this?", context: "Asking whether a shop stocks something.",
+    jp: "これはありますか", romaji: "kore wa arimasu ka",
+    syl: [[["koh","こ"],["reh","れ"]], WA, [["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Showing a clerk a photo of a product on your phone.",
+    words: [["kore","これ","this"],["wa","は","topic marker"],["arimasu","あります","to exist, to have (polite)"],["ka","か","question marker"]],
+    tip: "Need another size? “Hoka no saizu wa arimasu ka?”"
+  },
+  {
+    id: "korenishimasu", cat: "shopping",
+    en: "I'll take this.", context: "Deciding to buy.",
+    jp: "これにします", romaji: "kore ni shimasu",
+    syl: [[["koh","こ"],["reh","れ"]],[["nee","に"]],[["shee","し"],["mahs","ます"]]],
+    situation: "After comparing a few options at a counter.",
+    words: [["kore ni","これに","(on) this one"],["shimasu","します","I'll decide / I'll go with"]],
+    tip: "Works when ordering food too — point at the menu and say kore ni shimasu."
+  },
+  {
+    id: "saizu", cat: "shopping",
+    en: "Do you have another size?", context: "Asking for a different size.",
+    jp: "他のサイズはありますか", reading: "ほかの サイズは ありますか", romaji: "hoka no saizu wa arimasu ka",
+    syl: [[["hoh","ほ"],["kah","か"]],[["noh","の"]],[["sai","サイ"],["zoo","ズ"]], WA, [["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Trying on shoes or clothes that don't quite fit.",
+    words: [["hoka no","他の","other"],["saizu","サイズ","size"],["wa arimasu ka","はありますか","do you have?"]],
+    tip: "Be specific with ōkii saizu (bigger) or chiisai saizu (smaller). Japanese sizes tend to run small."
+  },
+  {
+    id: "iro", cat: "shopping",
+    en: "Do you have other colours?", context: "Asking about colour options.",
+    jp: "他の色はありますか", reading: "ほかの いろは ありますか", romaji: "hoka no iro wa arimasu ka",
+    syl: [[["hoh","ほ"],["kah","か"]],[["noh","の"]],[["ee","い"],["roh","ろ"]], WA, [["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "You like an item but not the colour on display.",
+    words: [["hoka no","他の","other"],["iro","色","colour"],["wa arimasu ka","はありますか","do you have?"]],
+    tip: "Name one if you like: kuro (black), shiro (white), aka (red), ao (blue)."
+  },
+  {
+    id: "dokoniarimasu", cat: "shopping",
+    en: "Where can I find ___?", context: "Finding an item in a store.",
+    jp: "〇〇はどこにありますか", reading: "〇〇は どこに ありますか", romaji: "___ wa doko ni arimasu ka",
+    say: "お土産はどこにありますか", sayNote: "Omiyage wa doko ni arimasu ka — “Where can I find souvenirs?”",
+    syl: [[["___",""]], WA, [["doh","ど"],["koh","こ"],["nee","に"]],[["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Searching a big drugstore or department store.",
+    words: [["___ wa","〇〇は","as for ___"],["doko ni","どこに","where"],["arimasu ka","ありますか","is it (located)?"]],
+    tip: "Use this for things. For places, “___ wa doko desu ka” is simpler."
+  },
+  {
+    id: "atm", cat: "shopping",
+    en: "Where is an ATM?", context: "Finding cash — still handy in Japan.",
+    jp: "ATMはどこですか", reading: "エーティーエムは どこですか", romaji: "ē‑tī‑emu wa doko desu ka",
+    syl: [[["eh","エー"],["tee","ティー"],["eh","エ"],["moo","ム"]], WA, DOKO, DESU, KA],
+    situation: "Running low on cash before a market or a small restaurant.",
+    words: [["ē‑tī‑emu","ATM","ATM, spelled out Japanese-style"],["wa","は","topic marker"],["doko desu ka","どこですか","where is it?"]],
+    tip: "Convenience-store ATMs (7‑Eleven especially) and post offices reliably accept foreign cards."
+  },
+
+  /* ---------- Dining ---------- */
+  {
+    id: "kore", cat: "dining",
+    en: "This one, please.", context: "Ordering or buying by pointing — works almost anywhere.",
+    jp: "これをください", romaji: "kore o kudasai",
+    syl: [[["koh","こ"],["reh","れ"]], O, KUDASAI],
+    situation: "Pointing at a picture on a menu, or at an item behind a counter.",
+    words: [["kore","これ","this"],["o","を","object marker (written を, said “o”)"],["kudasai","ください","please (give me)"]],
+    tip: "The “u” in kudasai is often whispered, so it sounds close to “k'dasai”."
+  },
+  {
+    id: "okaikei", cat: "dining",
+    en: "The bill, please.", context: "Asking to pay at a restaurant or café.",
+    jp: "お会計お願いします", reading: "おかいけい おねがいします", romaji: "okaikei onegaishimasu",
+    syl: [[["oh","お"],["kai","かい"],["kay","けい"]], ONEGAI],
+    situation: "Catching a server's eye after a meal. Many casual places have you pay at the register by the door instead.",
+    words: [["o‑","お","polite prefix"],["kaikei","会計","the bill"],["onegai shimasu","お願いします","please (a polite request)"]],
+    tip: "Crossing your index fingers into an X is a common silent way to ask for the bill."
+  },
+  {
+    id: "itadakimasu", cat: "dining",
+    en: "Let's eat. / Thank you for this food.", context: "Said with hands together just before you start eating.",
+    jp: "いただきます", romaji: "itadakimasu",
+    syl: [[["ee","い"],["tah","た"],["dah","だ"],["kee","き"],["mahs","ます"]]],
+    situation: "At the start of any meal — at home, with friends, even eating alone.",
+    words: [["itadaku","いただく","to humbly receive"],["‑masu","ます","polite ending"]],
+    tip: "It thanks everyone and everything that made the meal possible. Ends in “mahs”."
+  },
+  {
+    id: "gochisousama", cat: "dining",
+    en: "Thank you for the meal.", context: "Said after eating — to your host, or to staff as you leave.",
+    jp: "ごちそうさまでした", romaji: "gochisōsama deshita",
+    syl: [[["goh","ご"],["chee","ち"],["soh","そう"],["sah","さ"],["mah","ま"]],[["desh","でし"],["tah","た"]]],
+    situation: "Finishing dinner at a friend's home, or on your way out of a small restaurant.",
+    words: [["gochisō","ご馳走","feast, treat"],["sama","さま","honorific"],["deshita","でした","polite past “was”"]],
+    tip: "Saying it to the chef as you leave is a nice touch. Deshita sounds like “desh‑ta”."
+  },
+  {
+    id: "oishii", cat: "dining",
+    en: "It's delicious.", context: "Complimenting the food.",
+    jp: "おいしいです", romaji: "oishii desu",
+    syl: [[["oh","お"],["ee","い"],["shee","し"],["ee","い"]], DESU],
+    situation: "The chef or your host asks how the food is.",
+    words: [["oishii","おいしい","delicious"],["desu","です","polite “is”"]],
+    tip: "Stretch the final ii: oi‑shii. Casually, just “Oishii!” works."
+  },
+  {
+    id: "omizu", cat: "dining",
+    en: "Water, please.", context: "Asking for water — usually free in restaurants.",
+    jp: "お水をください", reading: "おみずを ください", romaji: "omizu o kudasai",
+    syl: [[["oh","お"],["mee","み"],["zoo","ず"]], O, KUDASAI],
+    situation: "Asking for a refill of the free water or tea many restaurants bring.",
+    words: [["omizu","お水","water (with polite o‑)"],["o","を","object marker"],["kudasai","ください","please (give me)"]],
+    tip: "Many places have a self-serve water station — look for a jug and cups near the counter."
+  },
+  {
+    id: "osusume", cat: "dining",
+    en: "What do you recommend?", context: "Asking staff for their pick.",
+    jp: "おすすめは何ですか", reading: "おすすめは なんですか", romaji: "osusume wa nan desu ka",
+    syl: [[["oh","お"],["soo","す"],["soo","す"],["meh","め"]], WA, [["nahn","なん"]], DESU, KA],
+    situation: "Faced with a menu you can't read, or wanting the house specialty.",
+    words: [["osusume","おすすめ","recommendation"],["wa","は","topic marker"],["nan","何","what"],["desu ka","ですか","polite “is it?”"]],
+    tip: "Menus often flag recommended dishes with おすすめ — worth learning to spot."
+  },
+  {
+    id: "eigomenyuu", cat: "dining",
+    en: "Do you have an English menu?", context: "Asking for a menu you can read.",
+    jp: "英語のメニューはありますか", reading: "えいごの メニューは ありますか", romaji: "eigo no menyū wa arimasu ka",
+    syl: [[["ay","えい"],["goh","ご"]],[["noh","の"]],[["meh","メ"],["nyoo","ニュー"]], WA, [["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Seated at a restaurant with a Japanese-only menu.",
+    words: [["eigo no","英語の","English (language)"],["menyū","メニュー","menu"],["wa arimasu ka","はありますか","do you have?"]],
+    tip: "Many places also have picture menus or plastic food displays out front — pointing works too."
+  },
+  {
+    id: "chuumon", cat: "dining",
+    en: "I'd like to order.", context: "Letting staff know you're ready.",
+    jp: "注文お願いします", reading: "ちゅうもん おねがいします", romaji: "chūmon onegaishimasu",
+    syl: [[["choo","ちゅう"],["mohn","もん"]], ONEGAI],
+    situation: "Catching a server's attention — usually right after “Sumimasen!”",
+    words: [["chūmon","注文","order"],["onegaishimasu","お願いします","please"]],
+    tip: "Many restaurants have a call button on the table, or you order on a tablet."
+  },
+  {
+    id: "arerugii", cat: "dining",
+    en: "I'm allergic to ___.", context: "Telling staff about a food allergy.",
+    jp: "〇〇のアレルギーがあります", romaji: "___ no arerugī ga arimasu",
+    say: "えびのアレルギーがあります", sayNote: "Ebi no arerugī ga arimasu — “I'm allergic to shrimp.”",
+    syl: [[["___",""]],[["noh","の"]],[["ah","ア"],["reh","レ"],["roo","ル"],["gee","ギー"]],[["gah","が"]],[["ah","あ"],["ree","り"],["mahs","ます"]]],
+    situation: "When ordering, or before a meal at a hotel or ryokan.",
+    words: [["___ no","〇〇の","to ___"],["arerugī","アレルギー","allergy"],["ga arimasu","があります","I have"]],
+    tip: "Common allergens: ebi (shrimp), kani (crab), tamago (egg), gyūnyū (milk), komugi (wheat), pīnattsu (peanuts), soba (buckwheat). For a serious allergy, carry a written card in Japanese."
+  },
+  {
+    id: "mouhitotsu", cat: "dining",
+    en: "Another one, please.", context: "Ordering the same thing again.",
+    jp: "もう一つお願いします", reading: "もう ひとつ おねがいします", romaji: "mō hitotsu onegaishimasu",
+    syl: [[["moh","もう"]],[["hee","ひ"],["toh","と"],["tsoo","つ"]], ONEGAI],
+    situation: "Your drink is empty, or one plate of gyoza wasn't enough.",
+    words: [["mō","もう","another, more"],["hitotsu","一つ","one (general counter)"],["onegaishimasu","お願いします","please"]],
+    tip: "Hitotsu, futatsu, mittsu — one, two, three — work for counting almost anything you order."
+  },
+  {
+    id: "biiru", cat: "dining",
+    en: "A beer, please.", context: "Ordering a drink.",
+    jp: "ビールを一つお願いします", reading: "ビールを ひとつ おねがいします", romaji: "bīru o hitotsu onegaishimasu",
+    syl: [[["bee","ビー"],["roo","ル"]], O, [["hee","ひ"],["toh","と"],["tsoo","つ"]], ONEGAI],
+    situation: "Sitting down at an izakaya, where beer is the classic first order.",
+    words: [["bīru","ビール","beer"],["o","を","object marker"],["hitotsu","一つ","one"],["onegaishimasu","お願いします","please"]],
+    tip: "“Toriaezu nama” — “a draft beer to start” — is a famously common first order at izakaya."
+  },
+  {
+    id: "kanpai", cat: "dining",
+    en: "Cheers!", context: "The toast before drinking.",
+    jp: "乾杯", reading: "かんぱい", romaji: "kanpai",
+    syl: [[["kahn","かん"],["pai","ぱい"]]],
+    situation: "Everyone's drinks have arrived at the table.",
+    words: [["kanpai","乾杯","literally “dry the cup”"]],
+    tip: "Wait until everyone has a drink, raise your glass and say it together — don't sip before the toast."
+  },
+
+  /* ---------- Help & health ---------- */
+  {
+    id: "tasuketekudasai", cat: "help",
+    en: "Please help me!", context: "Asking for urgent help.",
+    jp: "助けてください", reading: "たすけて ください", romaji: "tasukete kudasai",
+    syl: [[["tah","た"],["soo","す"],["keh","け"],["teh","て"]], KUDASAI],
+    situation: "An emergency where you need someone's attention right away.",
+    words: [["tasukete","助けて","help — from tasukeru, “to rescue”"],["kudasai","ください","please"]],
+    tip: "In a real emergency, shouting just “tasukete!” is fine. Dial 110 for police and 119 for an ambulance or fire."
+  },
+  {
+    id: "mayoimashita", cat: "help",
+    en: "I'm lost.", context: "Asking for help when you can't find your way.",
+    jp: "道に迷いました", reading: "みちに まよいました", romaji: "michi ni mayoimashita",
+    syl: [[["mee","み"],["chee","ち"]],[["nee","に"]],[["mah","ま"],["yoh","よ"],["ee","い"],["mahsh","まし"],["tah","た"]]],
+    situation: "Wandering residential streets with no phone signal.",
+    words: [["michi","道","road, way"],["ni","に","in, on"],["mayoimashita","迷いました","got lost (polite past)"]],
+    tip: "Look for a kōban — a small neighborhood police box. Giving directions is a big part of their job."
+  },
+  {
+    id: "byouin", cat: "help",
+    en: "Where is the hospital?", context: "Finding medical help.",
+    jp: "病院はどこですか", reading: "びょういんは どこですか", romaji: "byōin wa doko desu ka",
+    syl: [[["byoh","びょう"],["een","いん"]], WA, DOKO, DESU, KA],
+    situation: "You or a companion need to see a doctor.",
+    words: [["byōin","病院","hospital"],["wa","は","topic marker"],["doko desu ka","どこですか","where is it?"]],
+    tip: "Careful: biyōin, with an extra syllable, means hair salon. “Byo” is one quick syllable."
+  },
+  {
+    id: "keisatsu", cat: "help",
+    en: "Please call the police.", context: "Asking someone to contact the police.",
+    jp: "警察を呼んでください", reading: "けいさつを よんで ください", romaji: "keisatsu o yonde kudasai",
+    syl: [[["kay","けい"],["sah","さ"],["tsoo","つ"]], O, [["yohn","よん"],["deh","で"]], KUDASAI],
+    situation: "After a theft or an accident, or whenever you feel unsafe.",
+    words: [["keisatsu","警察","police"],["o","を","object marker"],["yonde","呼んで","call"],["kudasai","ください","please"]],
+    tip: "For an ambulance, swap in kyūkyūsha (救急車): “Kyūkyūsha o yonde kudasai.”"
+  },
+  {
+    id: "kibun", cat: "help",
+    en: "I feel sick.", context: "Telling someone you're unwell.",
+    jp: "気分が悪いです", reading: "きぶんが わるいです", romaji: "kibun ga warui desu",
+    syl: [[["kee","き"],["boon","ぶん"]],[["gah","が"]],[["wah","わ"],["roo","る"],["ee","い"]], DESU],
+    situation: "Feeling faint on a train, or asking a pharmacist for help.",
+    words: [["kibun","気分","feeling"],["ga","が","subject marker"],["warui","悪い","bad"],["desu","です","polite “is”"]],
+    tip: "For a specific pain, use “___ ga itai desu” — atama (head), onaka (stomach)."
+  },
+  {
+    id: "isha", cat: "help",
+    en: "I need a doctor.", context: "Asking for medical help.",
+    jp: "医者が必要です", reading: "いしゃが ひつようです", romaji: "isha ga hitsuyō desu",
+    syl: [[["ee","い"],["shah","しゃ"]],[["gah","が"]],[["hee","ひ"],["tsoo","つ"],["yoh","よう"]], DESU],
+    situation: "Feeling seriously unwell at your hotel or out and about.",
+    words: [["isha","医者","doctor"],["ga","が","subject marker"],["hitsuyō","必要","necessary"],["desu","です","polite “is”"]],
+    tip: "Your hotel front desk can usually point you to a clinic with English-speaking staff."
+  },
+  {
+    id: "yakkyoku", cat: "help",
+    en: "Where is a pharmacy?", context: "Finding medicine.",
+    jp: "薬局はどこですか", reading: "やっきょくは どこですか", romaji: "yakkyoku wa doko desu ka",
+    syl: [[["yahk","やっ"],["kyoh","きょ"],["koo","く"]], WA, DOKO, DESU, KA],
+    situation: "Needing cold medicine, bandages, or something for a headache.",
+    words: [["yakkyoku","薬局","pharmacy"],["wa","は","topic marker"],["doko desu ka","どこですか","where is it?"]],
+    tip: "Drugstores like Matsumoto Kiyoshi sell most everyday medicines; a yakkyoku can also fill prescriptions."
+  },
+  {
+    id: "eigohanaseru", cat: "help",
+    en: "Is there anyone who speaks English?", context: "Asking for an English speaker when things get complicated.",
+    jp: "英語を話せる人はいますか", reading: "えいごを はなせる ひとは いますか", romaji: "eigo o hanaseru hito wa imasu ka",
+    syl: [[["ay","えい"],["goh","ご"]], O, [["hah","は"],["nah","な"],["seh","せ"],["roo","る"]],[["hee","ひ"],["toh","と"]], WA, [["ee","い"],["mahs","ます"]], KA],
+    situation: "At a hospital, a police box, or with a tricky hotel issue.",
+    words: [["eigo o hanaseru","英語を話せる","who can speak English"],["hito","人","person"],["wa imasu ka","はいますか","is there (someone)?"]],
+    tip: "Imasu is for people and animals; arimasu is for things."
+  },
+
+  /* ---------- Things you'll hear ---------- */
+  {
+    id: "irasshaimase", cat: "heard",
+    en: "Welcome (to our store).", context: "You'll hear this as you walk in. No reply needed.",
+    jp: "いらっしゃいませ", romaji: "irasshaimase",
+    syl: [[["ee","い"],["rahs","らっ"],["shai","しゃい"],["mah","ま"],["seh","せ"]]],
+    situation: "Entering almost any shop, restaurant or konbini — sometimes called out by several staff at once.",
+    words: [["irasshai","いらっしゃい","come (honorific)"],["‑mase","ませ","extra-polite ending"]],
+    tip: "You don't need to answer. A small nod or smile is plenty."
+  },
+  {
+    id: "shoushou", cat: "heard",
+    en: "Please wait a moment.", context: "You'll hear this when staff need a moment to help you.",
+    jp: "少々お待ちください", reading: "しょうしょう おまち ください", romaji: "shōshō omachi kudasai",
+    syl: [[["shoh","しょう"],["shoh","しょう"]],[["oh","お"],["mah","ま"],["chee","ち"]], KUDASAI],
+    situation: "A clerk goes to check stock, or the front desk looks up your booking.",
+    words: [["shōshō","少々","a little"],["omachi","お待ち","waiting (honorific)"],["kudasai","ください","please"]],
+    tip: "The customer-service version of sukoshi matte kudasai. “Hai” is the right reply."
+  },
+  {
+    id: "nanmeisama", cat: "heard",
+    en: "How many people?", context: "You'll hear this at restaurant entrances.",
+    jp: "何名様ですか", reading: "なんめいさまですか", romaji: "nanmei‑sama desu ka",
+    syl: [[["nahn","なん"],["may","めい"],["sah","さ"],["mah","ま"]], DESU, KA],
+    situation: "Walking into a restaurant or café.",
+    words: [["nan","何","how many"],["mei","名","counter for people"],["sama","様","honorific"],["desu ka","ですか","polite question"]],
+    tip: "Answer with the number plus desu: hitori (1), futari (2), sannin (3). Holding up fingers works too."
+  },
+  {
+    id: "goriyou", cat: "heard",
+    en: "Would you like a bag?", context: "You'll hear this at the checkout.",
+    jp: "袋はご利用ですか", reading: "ふくろは ごりようですか", romaji: "fukuro wa goriyō desu ka",
+    syl: [[["foo","ふ"],["koo","く"],["roh","ろ"]], WA, [["goh","ご"],["ree","り"],["yoh","よう"]], DESU, KA],
+    situation: "Paying at a konbini, supermarket or drugstore.",
+    words: [["fukuro","袋","bag"],["wa","は","topic marker"],["goriyō","ご利用","use (honorific)"],["desu ka","ですか","polite question"]],
+    tip: "Decline with “fukuro wa irimasen” or just “daijōbu desu”. Bags usually cost a few yen."
+  },
+  {
+    id: "atatamemasu", cat: "heard",
+    en: "Shall I heat it up?", context: "You'll hear this at a konbini when buying a ready meal.",
+    jp: "温めますか", reading: "あたためますか", romaji: "atatamemasu ka",
+    syl: [[["ah","あ"],["tah","た"],["tah","た"],["meh","め"],["mahs","ます"]], KA],
+    situation: "Buying a bento, noodles or a pastry at a convenience store.",
+    words: [["atatamemasu","温めます","warm up (polite)"],["ka","か","question marker"]],
+    tip: "Reply “onegaishimasu” for yes, or “daijōbu desu” for no."
+  },
+  {
+    id: "pointo", cat: "heard",
+    en: "Do you have a point card?", context: "You'll hear this at the checkout in many chain stores.",
+    jp: "ポイントカードはお持ちですか", reading: "ポイントカードは おもちですか", romaji: "pointo kādo wa omochi desu ka",
+    syl: [[["poh","ポ"],["een","イン"],["toh","ト"]],[["kah","カー"],["doh","ド"]], WA, [["oh","お"],["moh","も"],["chee","ち"]], DESU, KA],
+    situation: "Paying at a drugstore, electronics store or konbini.",
+    words: [["pointo kādo","ポイントカード","loyalty card"],["wa","は","topic marker"],["omochi","お持ち","having (honorific)"],["desu ka","ですか","polite question"]],
+    tip: "Reply “arimasen” (I don't have one) — or a slight head shake does the job."
+  },
+  {
+    id: "tennai", cat: "heard",
+    en: "For here or to go?", context: "You'll hear this ordering at a café or fast-food counter.",
+    jp: "店内でお召し上がりですか", reading: "てんないで おめしあがりですか", romaji: "tennai de omeshiagari desu ka",
+    syl: [[["tehn","てん"],["nai","ない"],["deh","で"]],[["oh","お"],["meh","め"],["shee","し"],["ah","あ"],["gah","が"],["ree","り"]], DESU, KA],
+    situation: "Ordering at a café, bakery or burger counter.",
+    words: [["tennai de","店内で","inside the store"],["omeshiagari","お召し上がり","eating (honorific)"],["desu ka","ですか","polite question"]],
+    tip: "Answer “tennai de” (for here) or “mochikaeri de” (to go)."
+  },
+  {
+    id: "omatase", cat: "heard",
+    en: "Sorry to keep you waiting.", context: "You'll hear this when your order or your turn arrives.",
+    jp: "お待たせしました", reading: "おまたせ しました", romaji: "omatase shimashita",
+    syl: [[["oh","お"],["mah","ま"],["tah","た"],["seh","せ"]],[["shee","し"],["mahsh","まし"],["tah","た"]]],
+    situation: "Food arrives at your table, or you reach the front of a line.",
+    words: [["omatase","お待たせ","making (you) wait"],["shimashita","しました","did (polite past)"]],
+    tip: "No reply needed — a nod or “arigatō gozaimasu” is perfect."
+  },
+  {
+    id: "kochira", cat: "heard",
+    en: "This way, please.", context: "You'll hear this when staff lead you somewhere.",
+    jp: "こちらへどうぞ", romaji: "kochira e dōzo",
+    syl: [[["koh","こ"],["chee","ち"],["rah","ら"]],[["eh","え"]],[["doh","どう"],["zoh","ぞ"]]],
+    situation: "Being shown to your table or to your room.",
+    words: [["kochira","こちら","this way (polite)"],["e","へ","toward (written へ, said “e”)"],["dōzo","どうぞ","please (go ahead)"]],
+    tip: "Just follow along. Kochira is the polite word for “this way / here”."
+  },
+  {
+    id: "kashikomarimashita", cat: "heard",
+    en: "Certainly. / Understood.", context: "You'll hear this when staff confirm your order or request.",
+    jp: "かしこまりました", romaji: "kashikomarimashita",
+    syl: [[["kah","か"],["shee","し"],["koh","こ"],["mah","ま"],["ree","り"],["mahsh","まし"],["tah","た"]]],
+    situation: "After you order food, or ask the front desk for something.",
+    words: [["kashikomarimashita","かしこまりました","humble “understood” — used by staff to customers"]],
+    tip: "It means your request was received. As a customer, say wakarimashita instead."
+  },
+  {
+    id: "gochuumon", cat: "heard",
+    en: "Are you ready to order?", context: "You'll hear this from a server at your table.",
+    jp: "ご注文はお決まりですか", reading: "ごちゅうもんは おきまりですか", romaji: "go‑chūmon wa okimari desu ka",
+    syl: [[["goh","ご"],["choo","ちゅう"],["mohn","もん"]], WA, [["oh","お"],["kee","き"],["mah","ま"],["ree","り"]], DESU, KA],
+    situation: "A few minutes after you're seated.",
+    words: [["go‑chūmon","ご注文","your order (honorific)"],["wa","は","topic marker"],["okimari","お決まり","decided (honorific)"],["desu ka","ですか","polite question"]],
+    tip: "Not ready yet? “Mō sukoshi matte kudasai” — a little longer, please."
+  },
+  {
+    id: "oshiharai", cat: "heard",
+    en: "How would you like to pay?", context: "You'll hear this at the checkout.",
+    jp: "お支払いはどうなさいますか", reading: "おしはらいは どう なさいますか", romaji: "oshiharai wa dō nasaimasu ka",
+    syl: [[["oh","お"],["shee","し"],["hah","は"],["rai","らい"]], WA, [["doh","どう"]],[["nah","な"],["sai","さい"],["mahs","ます"]], KA],
+    situation: "At the register in a shop, hotel, or restaurant.",
+    words: [["oshiharai","お支払い","payment (honorific)"],["wa","は","topic marker"],["dō","どう","how"],["nasaimasu ka","なさいますか","will you do? (honorific)"]],
+    tip: "Answer genkin de (cash), kādo de (card), or name your IC card: Suica de."
+  },
+  {
+    id: "reshiito", cat: "heard",
+    en: "Do you need a receipt?", context: "You'll hear this at the register.",
+    jp: "レシートはご入り用ですか", reading: "レシートは ごいりようですか", romaji: "reshīto wa goiriyō desu ka",
+    syl: [[["reh","レ"],["shee","シー"],["toh","ト"]], WA, [["goh","ご"],["ee","い"],["ree","り"],["yoh","よう"]], DESU, KA],
+    situation: "Paying at a konbini or shop.",
+    words: [["reshīto","レシート","receipt"],["wa","は","topic marker"],["goiriyō","ご入り用","needed (honorific)"],["desu ka","ですか","polite question"]],
+    tip: "Reply “daijōbu desu” (no thanks) or “onegaishimasu” (yes please). A formal receipt for expenses is a ryōshūsho."
+  },
+  {
+    id: "ohashi", cat: "heard",
+    en: "Do you need chopsticks?", context: "You'll hear this at a konbini when buying food.",
+    jp: "お箸はご利用ですか", reading: "おはしは ごりようですか", romaji: "ohashi wa goriyō desu ka",
+    syl: [[["oh","お"],["hah","は"],["shee","し"]], WA, [["goh","ご"],["ree","り"],["yoh","よう"]], DESU, KA],
+    situation: "Buying a bento or noodles to eat back at the hotel.",
+    words: [["ohashi","お箸","chopsticks (with polite o‑)"],["wa","は","topic marker"],["goriyō","ご利用","use (honorific)"],["desu ka","ですか","polite question"]],
+    tip: "Say “onegaishimasu” for yes — hold up fingers if you need more than one pair."
+  },
+  {
+    id: "manseki", cat: "heard",
+    en: "We're full right now.", context: "You'll hear this when a restaurant has no free tables.",
+    jp: "ただいま満席です", reading: "ただいま まんせきです", romaji: "tadaima manseki desu",
+    syl: [[["tah","た"],["dah","だ"],["ee","い"],["mah","ま"]],[["mahn","まん"],["seh","せ"],["kee","き"]], DESU],
+    situation: "Walking into a popular restaurant at peak time.",
+    words: [["tadaima","ただいま","right now"],["manseki","満席","all seats taken"],["desu","です","polite “is”"]],
+    tip: "To wait, say “machimasu” (I'll wait) — staff may take your name or hand you a number."
+  }
+];
+
+const byId = Object.fromEntries(PHRASES.map(p => [p.id, p]));
+
+/* ============ Storage ============ */
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const settings = Object.assign({ dir: "en2jp", cats: CATEGORIES.map(c => c.id), voice: "" }, LS.get("kotoba.settings", {}));
+let progress = LS.get("kotoba.progress", {}); // key "id:dir" → {box, due, t}
+const saveSettings = () => LS.set("kotoba.settings", settings);
+// Turn on any categories added since this browser last saved its settings
+(function () {
+  const saved = LS.get("kotoba.settings", null);
+  const known = settings.known || (saved ? ["greet", "polite", "dining"] : CATEGORIES.map(c => c.id));
+  if (settings.cats.includes("polite") && !settings.cats.includes("greet")) settings.cats.push("greet");
+  settings.cats = settings.cats.filter(id => CATEGORIES.some(c => c.id === id));
+  CATEGORIES.forEach(c => { if (!known.includes(c.id)) settings.cats.push(c.id); });
+  settings.known = CATEGORIES.map(c => c.id);
+  saveSettings();
+})();
+
+/* Sync progress to the viewer's private store when available */
+let remote = null, writing = false, pendingWrite = false, saveTimer = null, syncState = "local";
+function saveProgress() {
+  LS.set("kotoba.progress", progress);
+  if (!remote) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flushRemote, 1200);
+}
+async function flushRemote() {
+  if (!remote) return;
+  if (writing) { pendingWrite = true; return; }
+  writing = true;
+  try { await remote.set({ cards: progress, updated: Date.now() }); syncState = "synced"; }
+  catch (e) { if (e && e.code === "invalid_argument") remote = null; syncState = remote ? "synced" : "local"; }
+  writing = false;
+  if (pendingWrite) { pendingWrite = false; flushRemote(); }
+}
+async function initSync() {
+  if (!window.claude || !window.claude.use) return;
+  try {
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!db || !user) return;
+    const uid = await user.id();
+    if (!uid) return;
+    const ref = db.doc("data/users/" + uid + "/progress");
+    const snap = await ref.get();
+    let localNewer = false;
+    const rc = snap.exists ? (snap.data().cards || {}) : {};
+    const merged = { ...rc };
+    for (const [k, v] of Object.entries(progress)) {
+      if (!rc[k] || (v.t || 0) > (rc[k].t || 0)) { merged[k] = v; localNewer = true; }
+    }
+    progress = merged;
+    LS.set("kotoba.progress", progress);
+    remote = ref; syncState = "synced";
+    if (localNewer) flushRemote();
+    if (screen === "setup") renderSetup();
+  } catch (e) { /* stay local */ }
+}
+
+/* ============ Spaced repetition ============ */
+const DAY = 864e5;
+const INTERVALS = [0, 1, 3, 7, 14, 30]; // days for box 0..5
+const MASTERED_BOX = 4;
+const key = (id, dir) => id + ":" + dir;
+
+function stateOf(id, dir) {
+  const r = progress[key(id, dir)];
+  if (!r) return "new";
+  return r.box >= MASTERED_BOX ? "mastered" : "learning";
+}
+function record(id, dir, gotIt) {
+  const k = key(id, dir);
+  const r = progress[k] || { box: 0 };
+  const box = gotIt ? Math.min(r.box + 1, INTERVALS.length - 1) : 0;
+  progress[k] = { box, due: Date.now() + INTERVALS[box] * DAY, t: Date.now() };
+  saveProgress();
+}
+function selectedPhrases() { return PHRASES.filter(p => settings.cats.includes(p.cat)); }
+function stats() {
+  const s = { mastered: 0, learning: 0, new: 0, due: 0, next: Infinity };
+  const now = Date.now();
+  for (const p of selectedPhrases()) {
+    const st = stateOf(p.id, settings.dir); s[st]++;
+    const r = progress[key(p.id, settings.dir)];
+    if (r) { if (r.due <= now) s.due++; else s.next = Math.min(s.next, r.due); }
+  }
+  return s;
+}
+function whenText(ts) {
+  const d = ts - Date.now();
+  if (d < 36e5) return "within the hour";
+  if (d < DAY) return "in " + Math.round(d / 36e5) + " hours";
+  const days = Math.round(d / DAY);
+  return days <= 1 ? "tomorrow" : "in " + days + " days";
+}
+const NEW_PER_SESSION = 10;
+function buildQueue(all) {
+  const now = Date.now(), list = selectedPhrases();
+  if (all) return shuffle(list.map(p => p.id));
+  const due = list.filter(p => { const r = progress[key(p.id, settings.dir)]; return r && r.due <= now; }).map(p => p.id);
+  const fresh = list.filter(p => !progress[key(p.id, settings.dir)]).map(p => p.id).slice(0, NEW_PER_SESSION);
+  return shuffle(due).concat(fresh);
+}
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ============ Speech ============ */
+const synth = window.speechSynthesis;
+let voices = [];
+const PREFERRED = /kyoko|otoya|nanami|keita|ayumi|haruka|google 日本語|o-ren|hattori/i;
+function loadVoices() {
+  if (!synth) return;
+  voices = synth.getVoices().filter(v => /^ja(-|_|$)/i.test(v.lang))
+    .sort((a, b) => (PREFERRED.test(b.name) - PREFERRED.test(a.name)) || (b.localService - a.localService));
+  if (screen === "setup") renderVoiceSelect();
+  renderWarn();
+}
+if (synth) { synth.addEventListener?.("voiceschanged", loadVoices); setTimeout(loadVoices, 50); setTimeout(loadVoices, 600); }
+
+function speak(text, rate, el) {
+  if (!synth) return;
+  synth.cancel();
+  document.querySelectorAll(".speaking").forEach(b => b.classList.remove("speaking"));
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "ja-JP"; u.rate = rate;
+  const v = voices.find(v => v.name === settings.voice) || voices[0];
+  if (v) u.voice = v;
+  if (el) { el.classList.add("speaking"); const off = () => el.classList.remove("speaking"); u.onend = off; u.onerror = off; }
+  synth.speak(u);
+}
+function renderWarn() {
+  const w = document.querySelector(".voice-warn");
+  if (!w) return;
+  if (!synth) { w.hidden = false; w.textContent = "This browser doesn't support speech. Try Chrome, Edge or Safari."; }
+  else if (!voices.length) { w.hidden = false; w.textContent = "No Japanese voice found here, so audio may be silent or wrong. Open this page in Chrome or Edge, or add a Japanese voice in your system's speech settings."; }
+  else w.hidden = true;
+}
+
+/* ============ Rendering ============ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const WAVE = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect class="bar" x="2" y="4" width="2.4" height="8" rx="1.2" fill="currentColor"/><rect class="bar" x="6.8" y="1.5" width="2.4" height="13" rx="1.2" fill="currentColor"/><rect class="bar" x="11.6" y="5" width="2.4" height="6" rx="1.2" fill="currentColor"/></svg>';
+
+let screen = "setup";
+let queue = [], revealed = false, firstTry = {}, confirmReset = false;
+
+function summaryHTML(s) {
+  const total = s.mastered + s.learning + s.new || 1;
+  return `
+    <div class="summary">
+      <div class="bar" role="img" aria-label="${s.mastered} mastered, ${s.learning} learning, ${s.new} new">
+        ${s.mastered ? `<span class="m" style="width:${s.mastered / total * 100}%"></span>` : ""}
+        ${s.learning ? `<span class="l" style="width:${s.learning / total * 100}%"></span>` : ""}
+        <span class="n"></span>
+      </div>
+      <div class="legend">
+        <div><b>${s.mastered}</b><span><i style="background:var(--good)"></i>Mastered</span></div>
+        <div><b>${s.learning}</b><span><i style="background:var(--again)"></i>Learning</span></div>
+        <div><b>${s.new}</b><span><i style="background:var(--new)"></i>New</span></div>
+      </div>
+    </div>`;
+}
+
+function renderSetup() {
+  screen = "setup";
+  $("count").textContent = "";
+  const s = stats();
+  const q = buildQueue(false);
+  const counts = Object.fromEntries(CATEGORIES.map(c => [c.id, PHRASES.filter(p => p.cat === c.id).length]));
+  const noCats = !settings.cats.length;
+  let startNote = "";
+  if (noCats) startNote = "Pick at least one category.";
+  else if (!q.length) startNote = `All caught up — next review ${s.next < Infinity ? whenText(s.next) : "soon"}.`;
+  else {
+    const dueN = q.filter(id => progress[key(id, settings.dir)]).length, newN = q.length - dueN;
+    startNote = [dueN && `${dueN} to review`, newN && `${newN} new`].filter(Boolean).join(" · ");
+  }
+
+  $("stage").innerHTML = `
+    <section class="card">
+      <div class="section">
+        <span class="eyebrow">Your progress</span>
+        ${summaryHTML(s)}
+      </div>
+
+      <div class="section">
+        <span class="eyebrow">Direction</span>
+        <div class="options" role="radiogroup">
+          <label class="opt"><input type="radio" name="dir" id="dir-en2jp" value="en2jp" ${settings.dir === "en2jp" ? "checked" : ""}>
+            <span><strong>English → Japanese</strong><small>See the English, recall how to say it.</small></span></label>
+          <label class="opt"><input type="radio" name="dir" id="dir-jp2en" value="jp2en" ${settings.dir === "jp2en" ? "checked" : ""}>
+            <span><strong>Japanese → English</strong><small>See and hear the Japanese, recall what it means.</small></span></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <span class="eyebrow">Categories</span>
+        <div class="chips">
+          ${CATEGORIES.map(c => `
+            <label class="chip"><input type="checkbox" id="cat-${c.id}" value="${c.id}" ${settings.cats.includes(c.id) ? "checked" : ""}>
+              <span>${esc(c.name)} <em>${counts[c.id]}</em></span></label>`).join("")}
+        </div>
+      </div>
+
+      <div class="start">
+        ${q.length && !noCats
+          ? `<button class="primary" id="start" type="button">Start session</button>`
+          : `<button class="primary" id="cram" type="button" ${noCats ? "disabled" : ""}>Review all anyway</button>`}
+        <div class="note">${esc(startNote)}</div>
+      </div>
+    </section>
+
+    <section class="settings">
+      <div class="row"><label for="voice">Voice</label><select id="voice"></select></div>
+      <div class="row">
+        <span class="sync">${syncState === "synced" ? "Progress syncs to your account." : "Progress is saved in this browser."}</span>
+        ${confirmReset
+          ? `<span><button class="link danger" id="reset-yes" type="button">Yes, reset all</button> &nbsp; <button class="link" id="reset-no" type="button">Cancel</button></span>`
+          : `<button class="link" id="reset" type="button">Reset progress</button>`}
+      </div>
+    </section>`;
+
+  renderVoiceSelect();
+  document.querySelectorAll('input[name="dir"]').forEach(r => r.onchange = e => { settings.dir = e.target.value; saveSettings(); renderSetup(); $("dir-" + settings.dir).focus(); });
+  CATEGORIES.forEach(c => $("cat-" + c.id).onchange = e => {
+    settings.cats = CATEGORIES.map(x => x.id).filter(id => id === c.id ? e.target.checked : settings.cats.includes(id));
+    saveSettings(); renderSetup(); $("cat-" + c.id).focus();
+  });
+  if ($("start")) $("start").onclick = () => startSession(false);
+  if ($("cram")) $("cram").onclick = () => startSession(true);
+  if ($("reset")) $("reset").onclick = () => { confirmReset = true; renderSetup(); $("reset-no").focus(); };
+  if ($("reset-no")) $("reset-no").onclick = () => { confirmReset = false; renderSetup(); };
+  if ($("reset-yes")) $("reset-yes").onclick = () => { progress = {}; saveProgress(); confirmReset = false; renderSetup(); };
+}
+
+function renderVoiceSelect() {
+  const sel = $("voice");
+  if (!sel) return;
+  if (!voices.length) { sel.innerHTML = "<option>No Japanese voice found</option>"; sel.disabled = true; return; }
+  sel.disabled = false;
+  sel.innerHTML = voices.map(v => `<option value="${esc(v.name)}" ${v.name === settings.voice ? "selected" : ""}>${esc(v.name.replace(/\s*\(.*\)$/, ""))}${v.localService ? "" : " (online)"}</option>`).join("");
+  sel.onchange = e => { settings.voice = e.target.value; saveSettings(); };
+}
+
+function startSession(all) {
+  queue = buildQueue(all);
+  firstTry = {};
+  revealed = false;
+  screen = "study";
+  renderCard();
+}
+
+function sylHTML(p) {
+  return `<div class="syl-wrap">
+    <div class="syls">${p.syl.map(w => `<span class="word">${w.map(([say, kana]) =>
+      kana ? `<button class="syl" type="button" data-kana="${esc(kana)}" aria-label="Play ${esc(say)}">${esc(say)}</button>` : `<span class="syl blank" aria-label="blank">___</span>`).join("")}</span>`).join("")}</div>
+    <span class="syl-cap">Tap a syllable to hear it slowly</span></div>`;
+}
+function audioHTML(p) {
+  return `<div class="audio">
+      <button class="play" id="play1" type="button">${WAVE} Listen <span class="speed">1×</span></button>
+      <button class="play slow" id="play2" type="button">${WAVE} Slow <span class="speed">0.5×</span></button>
+    </div>${p.sayNote ? `<div class="syl-cap">Audio example: ${esc(p.sayNote)}</div>` : ""}<div class="voice-warn" hidden></div>`;
+}
+function jpHTML(p) {
+  return `<div class="kana" lang="ja">${esc(p.jp)}</div>${p.reading ? `<div class="reading" lang="ja">${esc(p.reading)}</div>` : ""}`;
+}
+const moreHTML = `<button class="more-btn" id="more" type="button"><span>More about this phrase<br><small>When to use it · word by word · tip</small></span><span class="chev" aria-hidden="true">↑</span></button>`;
+const gradeHTML = `<div class="grade"><button class="btn-again" id="gAgain" type="button">Practice again</button><button class="btn-good" id="gGood" type="button">Got it</button></div>`;
+
+function renderCard(animate) {
+  if (!queue.length) return renderDone();
+  const p = byId[queue[0]];
+  const rev = settings.dir === "jp2en";
+  $("count").textContent = `${queue.length} left`;
+
+  const prompt = rev
+    ? `<div class="prompt"><span class="eyebrow">What does this mean?</span>${jpHTML(p)}<div class="romaji-lg">${esc(p.romaji)}</div></div>${audioHTML(p)}`
+    : `<div class="prompt"><span class="eyebrow">${p.cat === "heard" ? "What you'll hear for…" : "How do you say…"}</span><div class="english">${esc(p.en)}</div><div class="context">${esc(p.context)}</div></div>`;
+
+  const answer = rev
+    ? `<div class="english">${esc(p.en)}</div><div class="context" style="margin-top:-14px">${esc(p.context)}</div>
+       <dl class="rows"><dt>Sounds like</dt><dd>${sylHTML(p)}</dd></dl>`
+    : `${jpHTML(p)}
+       <dl class="rows"><dt>Romaji</dt><dd class="romaji">${esc(p.romaji)}</dd><dt>Sounds like</dt><dd>${sylHTML(p)}</dd></dl>
+       ${audioHTML(p)}`;
+
+  $("stage").innerHTML = `
+    <section class="card" aria-live="polite">
+      ${prompt}
+      ${!revealed
+        ? `<button class="reveal-btn" id="reveal" type="button">${rev ? "Reveal the meaning" : "Reveal the Japanese"}<span class="hint">${rev ? "Say what you think it means, then check" : "Say it out loud first, then check"}</span></button>`
+        : `<div class="answer ${animate ? "enter" : ""}">${answer}${moreHTML}${gradeHTML}</div>`}
+    </section>
+    <div class="nav">
+      <button class="ghost" id="end" type="button">← End session</button>
+      <button class="ghost" id="skip" type="button">Skip for now →</button>
+    </div>`;
+
+  if ($("play1")) { $("play1").onclick = e => speak(p.say || p.jp, 1, e.currentTarget); $("play2").onclick = e => speak(p.say || p.jp, 0.5, e.currentTarget); }
+  document.querySelectorAll(".syl").forEach(b => b.onclick = () => speak(b.dataset.kana, 0.6, b));
+  if ($("reveal")) $("reveal").onclick = reveal;
+  if ($("more")) $("more").onclick = () => openDrawer(p);
+  if ($("gAgain")) { $("gAgain").onclick = () => grade(false); $("gGood").onclick = () => grade(true); }
+  $("end").onclick = () => { synth?.cancel(); renderSetup(); };
+  $("skip").onclick = () => { queue.push(queue.shift()); revealed = false; synth?.cancel(); renderCard(); };
+  renderWarn();
+}
+
+function reveal() {
+  if (revealed || screen !== "study") return;
+  revealed = true;
+  renderCard(true);
+  ($("play1") || $("gGood"))?.focus({ preventScroll: true });
+}
+
+function grade(gotIt) {
+  if (!revealed) return;
+  const id = queue.shift();
+  if (!(id in firstTry)) firstTry[id] = gotIt;
+  record(id, settings.dir, gotIt);
+  if (!gotIt) queue.splice(Math.min(2, queue.length), 0, id); // comes back after two other cards
+  revealed = false;
+  synth?.cancel();
+  renderCard();
+}
+
+function renderDone() {
+  screen = "done";
+  $("count").textContent = "";
+  const ids = Object.keys(firstTry);
+  const first = ids.filter(id => firstTry[id]).length;
+  const s = stats();
+  $("stage").innerHTML = `
+    <section class="card done">
+      <div class="big" lang="ja">おつかれさま</div>
+      <p><em>otsukaresama</em> — “thanks for your hard work.”</p>
+      <p>${ids.length} phrase${ids.length === 1 ? "" : "s"} studied · ${first} on the first try · ${ids.length - first} needed practice</p>
+      ${summaryHTML(s)}
+      <button class="primary" id="back" type="button" style="width:100%">Back to setup</button>
+    </section>`;
+  $("back").onclick = renderSetup;
+  $("back").focus({ preventScroll: true });
+}
+
+/* ============ Drawer ============ */
+const drawer = $("drawer");
+function openDrawer(p) {
+  $("drawer-body").innerHTML = `
+    <div class="grip" aria-hidden="true"></div>
+    <div class="drawer-head">
+      <div><div class="kana" lang="ja" id="drawer-title">${esc(p.jp)}</div><div class="en">${esc(p.romaji)} — ${esc(p.en)}</div></div>
+      <button class="x" id="close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="dsec"><span class="eyebrow">When you'd use it</span><p>${esc(p.situation)}</p></div>
+    <div class="dsec"><span class="eyebrow">Word by word</span>
+      <ul class="breakdown">${p.words.map(([t, k, m]) => `<li><div class="term">${esc(t)}<span lang="ja">${esc(k)}</span></div><div class="mean">${esc(m)}</div></li>`).join("")}</ul>
+    </div>
+    <div class="dsec"><span class="eyebrow">Pronunciation tip</span><div class="tip">${esc(p.tip)}</div></div>`;
+  $("close").onclick = () => drawer.close();
+  drawer.showModal();
+  $("close").focus();
+}
+drawer.addEventListener("click", e => { if (e.target === drawer) drawer.close(); });
+drawer.addEventListener("close", () => $("more")?.focus({ preventScroll: true }));
+
+/* ============ Keyboard ============ */
+document.addEventListener("keydown", e => {
+  if (screen !== "study" || drawer.open || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (["INPUT", "SELECT"].includes(e.target.tagName)) return;
+  if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return; // let the focused button act
+  const p = byId[queue[0]];
+  const canPlay = $("play1");
+  if ((e.key === " " || e.key === "Enter") && !revealed) { e.preventDefault(); reveal(); }
+  else if (e.key === "1" && canPlay) speak(p.say || p.jp, 1, $("play1"));
+  else if (e.key === "2" && canPlay) speak(p.say || p.jp, 0.5, $("play2"));
+  else if (e.key === "ArrowRight" && revealed) grade(true);
+  else if (e.key === "ArrowLeft" && revealed) grade(false);
+  else if (e.key.toLowerCase() === "m" && revealed) openDrawer(p);
+});
+
+renderSetup();
+initSync();
+</script>
+
+</body>
+</html>
