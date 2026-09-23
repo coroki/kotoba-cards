@@ -129,6 +129,38 @@
   }
   .primary:hover { filter: brightness(1.08); }
   .primary:disabled { opacity: .45; cursor: default; filter: none; }
+  .secondary {
+    appearance: none; border: 1.5px solid var(--ai); border-radius: 14px; padding: 14px; font: inherit; font-weight: 600; font-size: 16px;
+    background: transparent; color: var(--ai); cursor: pointer; transition: background .15s;
+  }
+  .secondary:hover { background: var(--ai-soft); }
+  .or { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* ---------- Browse list ---------- */
+  .list-top { display: flex; flex-direction: column; gap: 14px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--ground); padding-block: 8px; margin-block: -8px; }
+  .search { width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: var(--card); border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .search:focus { outline: none; border-color: var(--ai); }
+  .jump { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .jump::-webkit-scrollbar { display: none; }
+  .jump a { flex: none; font-size: 13px; font-weight: 600; color: var(--ai); text-decoration: none; padding: 6px 12px; border-radius: 999px; background: var(--ai-soft); white-space: nowrap; }
+  .group { display: flex; flex-direction: column; gap: 10px; scroll-margin-top: 130px; }
+  .group h3 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; }
+  .plist { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .prow {
+    appearance: none; width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
+    background: transparent; border: 0; padding: 14px 16px; font: inherit; color: var(--ink); cursor: pointer;
+  }
+  .prow + .prow { border-top: 1px solid var(--line); }
+  .prow:hover { background: var(--ai-soft); }
+  .prow .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .prow .en { font-weight: 600; font-size: 15px; }
+  .prow .ro { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+  .prow .jpx { font-family: var(--jp); font-size: 13px; color: var(--muted); }
+  .sdot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--new); }
+  .sdot.mastered { background: var(--good); }
+  .sdot.learning { background: var(--again); }
+  .empty { text-align: center; color: var(--muted); padding: 30px 0; }
   .note { font-size: 14px; color: var(--muted); text-align: center; line-height: 1.45; }
 
   .settings { display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: var(--muted); }
@@ -215,6 +247,16 @@
   .btn-again:hover { border-color: var(--again); }
   .btn-good { background: var(--good-soft); color: var(--good); }
   .btn-good:hover { border-color: var(--good); }
+  .btn-good:disabled { opacity: .45; cursor: default; border-color: transparent; }
+  .btn-next { background: var(--ai-soft); color: var(--ai); }
+  .btn-next:hover { border-color: var(--ai); }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 12px);
+    background: var(--ink); color: var(--ground); padding: 10px 16px; border-radius: 999px; font-size: 14px; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 10;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .prow .chev { color: var(--muted); font-size: 20px; flex: none; }
 
   .nav { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
   .ghost {
@@ -222,8 +264,10 @@
     border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; cursor: pointer;
   }
   .ghost:hover { border-color: var(--ai); color: var(--ai); }
+  .ghost:disabled { opacity: .4; cursor: default; border-color: var(--line); color: var(--ink); }
 
   .done { text-align: center; align-items: center; }
+  .done { gap: 16px; }
   .done .big { font-family: var(--jp); font-size: 36px; font-weight: 700; color: var(--ai); }
   .done p { margin: 0; color: var(--muted); line-height: 1.5; }
   .done .summary { width: 100%; text-align: left; }
@@ -1153,109 +1197,9 @@ const PHRASES = [
 
 const byId = Object.fromEntries(PHRASES.map(p => [p.id, p]));
 
-/* ============ Storage ============ */
-const LS = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-};
-const settings = Object.assign({ dir: "en2jp", cats: CATEGORIES.map(c => c.id), voice: "" }, LS.get("kotoba.settings", {}));
-let progress = LS.get("kotoba.progress", {}); // key "id:dir" → {box, due, t}
-const saveSettings = () => LS.set("kotoba.settings", settings);
-// Turn on any categories added since this browser last saved its settings
-(function () {
-  const saved = LS.get("kotoba.settings", null);
-  const known = settings.known || (saved ? ["greet", "polite", "dining"] : CATEGORIES.map(c => c.id));
-  if (settings.cats.includes("polite") && !settings.cats.includes("greet")) settings.cats.push("greet");
-  settings.cats = settings.cats.filter(id => CATEGORIES.some(c => c.id === id));
-  CATEGORIES.forEach(c => { if (!known.includes(c.id)) settings.cats.push(c.id); });
-  settings.known = CATEGORIES.map(c => c.id);
-  saveSettings();
-})();
-
-/* Sync progress to the viewer's private store when available */
-let remote = null, writing = false, pendingWrite = false, saveTimer = null, syncState = "local";
-function saveProgress() {
-  LS.set("kotoba.progress", progress);
-  if (!remote) return;
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(flushRemote, 1200);
-}
-async function flushRemote() {
-  if (!remote) return;
-  if (writing) { pendingWrite = true; return; }
-  writing = true;
-  try { await remote.set({ cards: progress, updated: Date.now() }); syncState = "synced"; }
-  catch (e) { if (e && e.code === "invalid_argument") remote = null; syncState = remote ? "synced" : "local"; }
-  writing = false;
-  if (pendingWrite) { pendingWrite = false; flushRemote(); }
-}
-async function initSync() {
-  if (!window.claude || !window.claude.use) return;
-  try {
-    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
-    if (!db || !user) return;
-    const uid = await user.id();
-    if (!uid) return;
-    const ref = db.doc("data/users/" + uid + "/progress");
-    const snap = await ref.get();
-    let localNewer = false;
-    const rc = snap.exists ? (snap.data().cards || {}) : {};
-    const merged = { ...rc };
-    for (const [k, v] of Object.entries(progress)) {
-      if (!rc[k] || (v.t || 0) > (rc[k].t || 0)) { merged[k] = v; localNewer = true; }
-    }
-    progress = merged;
-    LS.set("kotoba.progress", progress);
-    remote = ref; syncState = "synced";
-    if (localNewer) flushRemote();
-    if (screen === "setup") renderSetup();
-  } catch (e) { /* stay local */ }
-}
-
-/* ============ Spaced repetition ============ */
-const DAY = 864e5;
-const INTERVALS = [0, 1, 3, 7, 14, 30]; // days for box 0..5
-const MASTERED_BOX = 4;
-const key = (id, dir) => id + ":" + dir;
-
-function stateOf(id, dir) {
-  const r = progress[key(id, dir)];
-  if (!r) return "new";
-  return r.box >= MASTERED_BOX ? "mastered" : "learning";
-}
-function record(id, dir, gotIt) {
-  const k = key(id, dir);
-  const r = progress[k] || { box: 0 };
-  const box = gotIt ? Math.min(r.box + 1, INTERVALS.length - 1) : 0;
-  progress[k] = { box, due: Date.now() + INTERVALS[box] * DAY, t: Date.now() };
-  saveProgress();
-}
+/* ============ Session state (fresh on every launch — nothing is saved) ============ */
+const settings = { dir: "en2jp", cats: CATEGORIES.map(c => c.id), voice: "" };
 function selectedPhrases() { return PHRASES.filter(p => settings.cats.includes(p.cat)); }
-function stats() {
-  const s = { mastered: 0, learning: 0, new: 0, due: 0, next: Infinity };
-  const now = Date.now();
-  for (const p of selectedPhrases()) {
-    const st = stateOf(p.id, settings.dir); s[st]++;
-    const r = progress[key(p.id, settings.dir)];
-    if (r) { if (r.due <= now) s.due++; else s.next = Math.min(s.next, r.due); }
-  }
-  return s;
-}
-function whenText(ts) {
-  const d = ts - Date.now();
-  if (d < 36e5) return "within the hour";
-  if (d < DAY) return "in " + Math.round(d / 36e5) + " hours";
-  const days = Math.round(d / DAY);
-  return days <= 1 ? "tomorrow" : "in " + days + " days";
-}
-const NEW_PER_SESSION = 10;
-function buildQueue(all) {
-  const now = Date.now(), list = selectedPhrases();
-  if (all) return shuffle(list.map(p => p.id));
-  const due = list.filter(p => { const r = progress[key(p.id, settings.dir)]; return r && r.due <= now; }).map(p => p.id);
-  const fresh = list.filter(p => !progress[key(p.id, settings.dir)]).map(p => p.id).slice(0, NEW_PER_SESSION);
-  return shuffle(due).concat(fresh);
-}
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 /* ============ Speech ============ */
@@ -1290,53 +1234,47 @@ function renderWarn() {
   else w.hidden = true;
 }
 
-/* ============ Rendering ============ */
+/* ============ Rendering helpers ============ */
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const WAVE = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect class="bar" x="2" y="4" width="2.4" height="8" rx="1.2" fill="currentColor"/><rect class="bar" x="6.8" y="1.5" width="2.4" height="13" rx="1.2" fill="currentColor"/><rect class="bar" x="11.6" y="5" width="2.4" height="6" rx="1.2" fill="currentColor"/></svg>';
 
 let screen = "setup";
-let queue = [], revealed = false, firstTry = {}, confirmReset = false;
+let pool = [], revealed = false, total = 0, shown = 0;
 
-function summaryHTML(s) {
-  const total = s.mastered + s.learning + s.new || 1;
-  return `
-    <div class="summary">
-      <div class="bar" role="img" aria-label="${s.mastered} mastered, ${s.learning} learning, ${s.new} new">
-        ${s.mastered ? `<span class="m" style="width:${s.mastered / total * 100}%"></span>` : ""}
-        ${s.learning ? `<span class="l" style="width:${s.learning / total * 100}%"></span>` : ""}
-        <span class="n"></span>
-      </div>
-      <div class="legend">
-        <div><b>${s.mastered}</b><span><i style="background:var(--good)"></i>Mastered</span></div>
-        <div><b>${s.learning}</b><span><i style="background:var(--again)"></i>Learning</span></div>
-        <div><b>${s.new}</b><span><i style="background:var(--new)"></i>New</span></div>
-      </div>
-    </div>`;
+function sylHTML(p) {
+  return `<div class="syl-wrap">
+    <div class="syls">${p.syl.map(w => `<span class="word">${w.map(([say, kana]) =>
+      kana ? `<button class="syl" type="button" data-kana="${esc(kana)}" aria-label="Play ${esc(say)}">${esc(say)}</button>` : `<span class="syl blank" aria-label="blank">___</span>`).join("")}</span>`).join("")}</div>
+    <span class="syl-cap">Tap a syllable to hear it slowly</span></div>`;
+}
+function audioHTML(p) {
+  return `<div class="audio">
+      <button class="play" id="play1" type="button">${WAVE} Listen <span class="speed">1×</span></button>
+      <button class="play slow" id="play2" type="button">${WAVE} Slow <span class="speed">0.5×</span></button>
+    </div>${p.sayNote ? `<div class="syl-cap">Audio example: ${esc(p.sayNote)}</div>` : ""}<div class="voice-warn" hidden></div>`;
+}
+function jpHTML(p) {
+  return `<div class="kana" lang="ja">${esc(p.jp)}</div>${p.reading ? `<div class="reading" lang="ja">${esc(p.reading)}</div>` : ""}`;
+}
+const moreHTML = `<button class="more-btn" id="more" type="button"><span>More about this phrase<br><small>When to use it · word by word · tip</small></span><span class="chev" aria-hidden="true">↑</span></button>`;
+function bindAudio(p) {
+  if ($("play1")) { $("play1").onclick = e => speak(p.say || p.jp, 1, e.currentTarget); $("play2").onclick = e => speak(p.say || p.jp, 0.5, e.currentTarget); }
+  document.querySelectorAll(".syl[data-kana]").forEach(b => b.onclick = () => speak(b.dataset.kana, 0.6, b));
+  if ($("more")) $("more").onclick = () => openDrawer(p);
+  renderWarn();
 }
 
+/* ============ Setup ============ */
 function renderSetup() {
   screen = "setup";
+  synth?.cancel();
   $("count").textContent = "";
-  const s = stats();
-  const q = buildQueue(false);
   const counts = Object.fromEntries(CATEGORIES.map(c => [c.id, PHRASES.filter(p => p.cat === c.id).length]));
-  const noCats = !settings.cats.length;
-  let startNote = "";
-  if (noCats) startNote = "Pick at least one category.";
-  else if (!q.length) startNote = `All caught up — next review ${s.next < Infinity ? whenText(s.next) : "soon"}.`;
-  else {
-    const dueN = q.filter(id => progress[key(id, settings.dir)]).length, newN = q.length - dueN;
-    startNote = [dueN && `${dueN} to review`, newN && `${newN} new`].filter(Boolean).join(" · ");
-  }
+  const n = selectedPhrases().length;
 
   $("stage").innerHTML = `
     <section class="card">
-      <div class="section">
-        <span class="eyebrow">Your progress</span>
-        ${summaryHTML(s)}
-      </div>
-
       <div class="section">
         <span class="eyebrow">Direction</span>
         <div class="options" role="radiogroup">
@@ -1357,34 +1295,25 @@ function renderSetup() {
       </div>
 
       <div class="start">
-        ${q.length && !noCats
-          ? `<button class="primary" id="start" type="button">Start session</button>`
-          : `<button class="primary" id="cram" type="button" ${noCats ? "disabled" : ""}>Review all anyway</button>`}
-        <div class="note">${esc(startNote)}</div>
+        <button class="primary" id="start" type="button" ${n ? "" : "disabled"}>Start with ${n} phrase${n === 1 ? "" : "s"}</button>
+        <div class="note">${n ? "Cards come in shuffled. “Got it” takes a phrase out; “Next” keeps it in the pool." : "Pick at least one category."}</div>
+        <div class="or">or</div>
+        <button class="secondary" id="browse" type="button">Browse all ${PHRASES.length} phrases</button>
       </div>
     </section>
 
     <section class="settings">
       <div class="row"><label for="voice">Voice</label><select id="voice"></select></div>
-      <div class="row">
-        <span class="sync">${syncState === "synced" ? "Progress syncs to your account." : "Progress is saved in this browser."}</span>
-        ${confirmReset
-          ? `<span><button class="link danger" id="reset-yes" type="button">Yes, reset all</button> &nbsp; <button class="link" id="reset-no" type="button">Cancel</button></span>`
-          : `<button class="link" id="reset" type="button">Reset progress</button>`}
-      </div>
     </section>`;
 
   renderVoiceSelect();
-  document.querySelectorAll('input[name="dir"]').forEach(r => r.onchange = e => { settings.dir = e.target.value; saveSettings(); renderSetup(); $("dir-" + settings.dir).focus(); });
+  document.querySelectorAll('input[name="dir"]').forEach(r => r.onchange = e => { settings.dir = e.target.value; renderSetup(); $("dir-" + settings.dir).focus(); });
   CATEGORIES.forEach(c => $("cat-" + c.id).onchange = e => {
     settings.cats = CATEGORIES.map(x => x.id).filter(id => id === c.id ? e.target.checked : settings.cats.includes(id));
-    saveSettings(); renderSetup(); $("cat-" + c.id).focus();
+    renderSetup(); $("cat-" + c.id).focus();
   });
-  if ($("start")) $("start").onclick = () => startSession(false);
-  if ($("cram")) $("cram").onclick = () => startSession(true);
-  if ($("reset")) $("reset").onclick = () => { confirmReset = true; renderSetup(); $("reset-no").focus(); };
-  if ($("reset-no")) $("reset-no").onclick = () => { confirmReset = false; renderSetup(); };
-  if ($("reset-yes")) $("reset-yes").onclick = () => { progress = {}; saveProgress(); confirmReset = false; renderSetup(); };
+  $("start").onclick = startSession;
+  $("browse").onclick = () => { listQuery = ""; listScroll = 0; renderList(); };
 }
 
 function renderVoiceSelect() {
@@ -1393,40 +1322,23 @@ function renderVoiceSelect() {
   if (!voices.length) { sel.innerHTML = "<option>No Japanese voice found</option>"; sel.disabled = true; return; }
   sel.disabled = false;
   sel.innerHTML = voices.map(v => `<option value="${esc(v.name)}" ${v.name === settings.voice ? "selected" : ""}>${esc(v.name.replace(/\s*\(.*\)$/, ""))}${v.localService ? "" : " (online)"}</option>`).join("");
-  sel.onchange = e => { settings.voice = e.target.value; saveSettings(); };
+  sel.onchange = e => { settings.voice = e.target.value; };
 }
 
-function startSession(all) {
-  queue = buildQueue(all);
-  firstTry = {};
+/* ============ Study ============ */
+function startSession() {
+  pool = shuffle(selectedPhrases().map(p => p.id));
+  total = pool.length; shown = 0;
   revealed = false;
   screen = "study";
   renderCard();
 }
 
-function sylHTML(p) {
-  return `<div class="syl-wrap">
-    <div class="syls">${p.syl.map(w => `<span class="word">${w.map(([say, kana]) =>
-      kana ? `<button class="syl" type="button" data-kana="${esc(kana)}" aria-label="Play ${esc(say)}">${esc(say)}</button>` : `<span class="syl blank" aria-label="blank">___</span>`).join("")}</span>`).join("")}</div>
-    <span class="syl-cap">Tap a syllable to hear it slowly</span></div>`;
-}
-function audioHTML(p) {
-  return `<div class="audio">
-      <button class="play" id="play1" type="button">${WAVE} Listen <span class="speed">1×</span></button>
-      <button class="play slow" id="play2" type="button">${WAVE} Slow <span class="speed">0.5×</span></button>
-    </div>${p.sayNote ? `<div class="syl-cap">Audio example: ${esc(p.sayNote)}</div>` : ""}<div class="voice-warn" hidden></div>`;
-}
-function jpHTML(p) {
-  return `<div class="kana" lang="ja">${esc(p.jp)}</div>${p.reading ? `<div class="reading" lang="ja">${esc(p.reading)}</div>` : ""}`;
-}
-const moreHTML = `<button class="more-btn" id="more" type="button"><span>More about this phrase<br><small>When to use it · word by word · tip</small></span><span class="chev" aria-hidden="true">↑</span></button>`;
-const gradeHTML = `<div class="grade"><button class="btn-again" id="gAgain" type="button">Practice again</button><button class="btn-good" id="gGood" type="button">Got it</button></div>`;
-
 function renderCard(animate) {
-  if (!queue.length) return renderDone();
-  const p = byId[queue[0]];
+  if (!pool.length) return renderDone();
+  const p = byId[pool[0]];
   const rev = settings.dir === "jp2en";
-  $("count").textContent = `${queue.length} left`;
+  $("count").textContent = `${pool.length} of ${total} left`;
 
   const prompt = rev
     ? `<div class="prompt"><span class="eyebrow">What does this mean?</span>${jpHTML(p)}<div class="romaji-lg">${esc(p.romaji)}</div></div>${audioHTML(p)}`
@@ -1444,21 +1356,23 @@ function renderCard(animate) {
       ${prompt}
       ${!revealed
         ? `<button class="reveal-btn" id="reveal" type="button">${rev ? "Reveal the meaning" : "Reveal the Japanese"}<span class="hint">${rev ? "Say what you think it means, then check" : "Say it out loud first, then check"}</span></button>`
-        : `<div class="answer ${animate ? "enter" : ""}">${answer}${moreHTML}${gradeHTML}</div>`}
+        : `<div class="answer ${animate ? "enter" : ""}">${answer}${moreHTML}</div>`}
+      <div class="grade">
+        <button class="btn-good" id="gGood" type="button" ${revealed ? "" : "disabled"}>Got it</button>
+        <button class="btn-next" id="gNext" type="button">Next →</button>
+      </div>
     </section>
     <div class="nav">
       <button class="ghost" id="end" type="button">← End session</button>
-      <button class="ghost" id="skip" type="button">Skip for now →</button>
+      <button class="ghost" id="shuffle" type="button" ${pool.length > 1 ? "" : "disabled"}>Shuffle</button>
     </div>`;
 
-  if ($("play1")) { $("play1").onclick = e => speak(p.say || p.jp, 1, e.currentTarget); $("play2").onclick = e => speak(p.say || p.jp, 0.5, e.currentTarget); }
-  document.querySelectorAll(".syl").forEach(b => b.onclick = () => speak(b.dataset.kana, 0.6, b));
+  bindAudio(p);
   if ($("reveal")) $("reveal").onclick = reveal;
-  if ($("more")) $("more").onclick = () => openDrawer(p);
-  if ($("gAgain")) { $("gAgain").onclick = () => grade(false); $("gGood").onclick = () => grade(true); }
-  $("end").onclick = () => { synth?.cancel(); renderSetup(); };
-  $("skip").onclick = () => { queue.push(queue.shift()); revealed = false; synth?.cancel(); renderCard(); };
-  renderWarn();
+  $("gGood").onclick = gotIt;
+  $("gNext").onclick = next;
+  $("end").onclick = renderSetup;
+  $("shuffle").onclick = () => { pool = shuffle(pool); revealed = false; synth?.cancel(); renderCard(); toast("Shuffled"); };
 }
 
 function reveal() {
@@ -1467,34 +1381,124 @@ function reveal() {
   renderCard(true);
   ($("play1") || $("gGood"))?.focus({ preventScroll: true });
 }
-
-function grade(gotIt) {
+function gotIt() {
   if (!revealed) return;
-  const id = queue.shift();
-  if (!(id in firstTry)) firstTry[id] = gotIt;
-  record(id, settings.dir, gotIt);
-  if (!gotIt) queue.splice(Math.min(2, queue.length), 0, id); // comes back after two other cards
-  revealed = false;
-  synth?.cancel();
+  pool.shift(); shown++;
+  revealed = false; synth?.cancel();
+  renderCard();
+}
+function next() {
+  if (pool.length > 1) pool.push(pool.shift());
+  shown++;
+  revealed = false; synth?.cancel();
   renderCard();
 }
 
 function renderDone() {
   screen = "done";
   $("count").textContent = "";
-  const ids = Object.keys(firstTry);
-  const first = ids.filter(id => firstTry[id]).length;
-  const s = stats();
   $("stage").innerHTML = `
     <section class="card done">
       <div class="big" lang="ja">おつかれさま</div>
       <p><em>otsukaresama</em> — “thanks for your hard work.”</p>
-      <p>${ids.length} phrase${ids.length === 1 ? "" : "s"} studied · ${first} on the first try · ${ids.length - first} needed practice</p>
-      ${summaryHTML(s)}
-      <button class="primary" id="back" type="button" style="width:100%">Back to setup</button>
+      <p>You cleared all ${total} phrase${total === 1 ? "" : "s"} in ${shown} card${shown === 1 ? "" : "s"}.</p>
+      <button class="primary" id="again" type="button" style="width:100%">Go again</button>
+      <button class="secondary" id="back" type="button" style="width:100%">Back to setup</button>
     </section>`;
+  $("again").onclick = startSession;
   $("back").onclick = renderSetup;
-  $("back").focus({ preventScroll: true });
+  $("again").focus({ preventScroll: true });
+}
+
+let toastTimer;
+function toast(msg) {
+  let t = $("toast");
+  if (!t) { t = document.createElement("div"); t.id = "toast"; t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1400);
+}
+
+/* ============ Browse ============ */
+let listQuery = "", listScroll = 0, viewList = [], viewIdx = 0;
+const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[‑-]/g, " ");
+function filtered() {
+  const q = norm(listQuery.trim());
+  if (!q) return PHRASES.slice();
+  return PHRASES.filter(p => [p.en, p.romaji, p.jp, p.reading || "", p.context].some(t => norm(t).includes(q)));
+}
+function renderList(keepFocus) {
+  screen = "list";
+  synth?.cancel();
+  const list = filtered();
+  $("count").textContent = listQuery ? `${list.length} match${list.length === 1 ? "" : "es"}` : `${PHRASES.length} phrases`;
+  const groups = CATEGORIES.map(c => ({ c, items: list.filter(p => p.cat === c.id) })).filter(g => g.items.length);
+  const jumpHTML = groups.map(g => `<a href="#grp-${g.c.id}" data-grp="${g.c.id}">${esc(g.c.name)}</a>`).join("");
+  const body = groups.length ? groups.map(g => `
+      <section class="group" id="grp-${g.c.id}">
+        <h3><span>${esc(g.c.name)}</span><span>${g.items.length}</span></h3>
+        <div class="plist">${g.items.map(p => `
+          <button class="prow" type="button" data-id="${p.id}">
+            <span class="txt"><span class="en">${esc(p.en)}</span><span class="ro">${esc(p.romaji)}</span><span class="jpx" lang="ja">${esc(p.jp)}</span></span>
+            <span class="chev" aria-hidden="true">›</span>
+          </button>`).join("")}</div>
+      </section>`).join("") : `<div class="empty">No phrases match “${esc(listQuery)}”.</div>`;
+
+  if (keepFocus && $("search")) {
+    $("list-body").innerHTML = body;
+    $("jump").innerHTML = jumpHTML;
+  } else {
+    $("stage").innerHTML = `
+      <div class="list-top">
+        <div class="nav"><button class="ghost" id="list-back" type="button">← Setup</button></div>
+        <input class="search" id="search" type="search" placeholder="Search English, romaji or Japanese" autocomplete="off" value="${esc(listQuery)}" aria-label="Search phrases">
+        <nav class="jump" id="jump" aria-label="Jump to category">${jumpHTML}</nav>
+      </div>
+      <div id="list-body" style="display:flex;flex-direction:column;gap:24px">${body}</div>`;
+    $("list-back").onclick = renderSetup;
+    $("search").oninput = e => { listQuery = e.target.value; renderList(true); };
+    window.scrollTo(0, listScroll);
+  }
+  $("jump").onclick = e => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); $("grp-" + a.dataset.grp)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
+  $("list-body").onclick = e => {
+    const row = e.target.closest(".prow"); if (!row) return;
+    listScroll = window.scrollY;
+    viewList = list.map(p => p.id);
+    viewIdx = viewList.indexOf(row.dataset.id);
+    renderView();
+  };
+}
+
+function renderView() {
+  screen = "view";
+  synth?.cancel();
+  const p = byId[viewList[viewIdx]];
+  const cat = CATEGORIES.find(c => c.id === p.cat);
+  $("count").textContent = `${viewIdx + 1} / ${viewList.length}`;
+  $("stage").innerHTML = `
+    <div class="nav"><button class="ghost" id="to-list" type="button">← All phrases</button></div>
+    <section class="card" aria-live="polite">
+      <div class="prompt"><span class="eyebrow">${esc(cat.name)}</span><div class="english">${esc(p.en)}</div><div class="context">${esc(p.context)}</div></div>
+      <div class="answer">
+        ${jpHTML(p)}
+        <dl class="rows"><dt>Romaji</dt><dd class="romaji">${esc(p.romaji)}</dd><dt>Sounds like</dt><dd>${sylHTML(p)}</dd></dl>
+        ${audioHTML(p)}
+        ${moreHTML}
+      </div>
+    </section>
+    <div class="nav">
+      <button class="ghost" id="v-prev" type="button" ${viewIdx === 0 ? "disabled" : ""}>‹ Previous</button>
+      <button class="ghost" id="v-next" type="button" ${viewIdx === viewList.length - 1 ? "disabled" : ""}>Next ›</button>
+    </div>`;
+  bindAudio(p);
+  $("to-list").onclick = () => renderList();
+  $("v-prev").onclick = () => stepView(-1);
+  $("v-next").onclick = () => stepView(1);
+  window.scrollTo(0, 0);
+}
+function stepView(d) {
+  const n = viewIdx + d;
+  if (n < 0 || n >= viewList.length) return;
+  viewIdx = n; renderView();
 }
 
 /* ============ Drawer ============ */
@@ -1520,21 +1524,30 @@ drawer.addEventListener("close", () => $("more")?.focus({ preventScroll: true })
 
 /* ============ Keyboard ============ */
 document.addEventListener("keydown", e => {
-  if (screen !== "study" || drawer.open || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (drawer.open || e.metaKey || e.ctrlKey || e.altKey) return;
   if (["INPUT", "SELECT"].includes(e.target.tagName)) return;
   if (e.target.tagName === "BUTTON" && (e.key === " " || e.key === "Enter")) return; // let the focused button act
-  const p = byId[queue[0]];
-  const canPlay = $("play1");
+  if (screen === "view") {
+    const p = byId[viewList[viewIdx]];
+    if (e.key === "ArrowRight") stepView(1);
+    else if (e.key === "ArrowLeft") stepView(-1);
+    else if (e.key === "Escape") renderList();
+    else if (e.key === "1") speak(p.say || p.jp, 1, $("play1"));
+    else if (e.key === "2") speak(p.say || p.jp, 0.5, $("play2"));
+    else if (e.key.toLowerCase() === "m") openDrawer(p);
+    return;
+  }
+  if (screen !== "study") return;
+  const p = byId[pool[0]];
   if ((e.key === " " || e.key === "Enter") && !revealed) { e.preventDefault(); reveal(); }
-  else if (e.key === "1" && canPlay) speak(p.say || p.jp, 1, $("play1"));
-  else if (e.key === "2" && canPlay) speak(p.say || p.jp, 0.5, $("play2"));
-  else if (e.key === "ArrowRight" && revealed) grade(true);
-  else if (e.key === "ArrowLeft" && revealed) grade(false);
+  else if (e.key === "1" && $("play1")) speak(p.say || p.jp, 1, $("play1"));
+  else if (e.key === "2" && $("play2")) speak(p.say || p.jp, 0.5, $("play2"));
+  else if (e.key.toLowerCase() === "g" && revealed) gotIt();
+  else if (e.key === "ArrowRight") next();
   else if (e.key.toLowerCase() === "m" && revealed) openDrawer(p);
 });
 
 renderSetup();
-initSync();
 </script>
 
 </body>
