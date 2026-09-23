@@ -380,6 +380,15 @@ const PHRASES = [
     tip: "Like konnichiwa, the final は is read “wa”. The “n” before “b” drifts toward an “m”: kom‑ban‑wa."
   },
   {
+    id: "ogenki", cat: "greet",
+    en: "How are you?", context: "Asking after someone's wellbeing.",
+    jp: "お元気ですか", reading: "おげんきですか", romaji: "ogenki desu ka",
+    syl: [[["oh","お"],["gehn","げん"],["kee","き"]], DESU, KA],
+    situation: "Catching up with someone you haven't seen in a while, such as a host or colleague on a return visit.",
+    words: [["o‑","お","polite prefix"],["genki","元気","well, healthy, energetic"],["desu ka","ですか","polite “is it?”"]],
+    tip: "It isn't used as an everyday “hi, how are you?” — konnichiwa is enough for that. The usual reply is “Hai, genki desu” (Yes, I'm well)."
+  },
+  {
     id: "arigatou", cat: "greet",
     en: "Thank you very much.", context: "Polite thanks — to a shopkeeper, host, or anyone who helped you.",
     jp: "ありがとうございます", romaji: "arigatō gozaimasu",
@@ -535,6 +544,15 @@ const PHRASES = [
     tip: "No rising tone needed — the か at the end already makes it a question."
   },
   {
+    id: "eigodeii", cat: "basics",
+    en: "Would it be okay if we speak in English?", context: "A very polite way to ask to switch to English.",
+    jp: "英語で話してもよろしいでしょうか", reading: "えいごで はなしても よろしいでしょうか", romaji: "eigo de hanashite mo yoroshii deshō ka",
+    syl: [[["ay","えい"],["goh","ご"],["deh","で"]],[["hah","は"],["nah","な"],["shee","し"],["teh","て"],["moh","も"]],[["yoh","よ"],["roh","ろ"],["shee","し"],["ee","い"]],[["deh","で"],["shoh","しょう"]], KA],
+    situation: "When a conversation at a hotel desk, pharmacy or station gets too complex for your Japanese.",
+    words: [["eigo de","英語で","in English"],["hanashite mo","話しても","(even) if I speak"],["yoroshii","よろしい","all right (very polite)"],["deshō ka","でしょうか","would it be? (soft question)"]],
+    tip: "Start with “sumimasen” to soften it further. A shorter, still-polite version is “Eigo de ii desu ka?”"
+  },
+  {
     id: "mouichido", cat: "basics",
     en: "One more time, please.", context: "Asking someone to repeat what they said.",
     jp: "もう一度お願いします", reading: "もう いちど おねがいします", romaji: "mō ichido onegaishimasu",
@@ -553,6 +571,56 @@ const PHRASES = [
     tip: "The small っ in matte is a tiny pause: mat‑te. Staff will say the extra-polite version to you: shōshō omachi kudasai."
   },
   {
+    id: "okudasai", cat: "basics",
+    en: "___, please (give me).", context: "Asking for any item you can be handed.",
+    jp: "〇〇をください", romaji: "___ o kudasai",
+    say: "コーヒーをください", sayNote: "Kōhī o kudasai — “Coffee, please.”",
+    syl: [[["___",""]], O, KUDASAI],
+    situation: "At a café counter, a market stall, or a konbini.",
+    words: [["___ o","〇〇を","___ (the thing you want)"],["kudasai","ください","please give me"]],
+    tip: "Kudasai is for things you can be handed. For services and requests, use “___ o onegaishimasu” instead."
+  },
+  {
+    id: "waarimasuka", cat: "basics",
+    en: "Do you have ___?", context: "Asking whether something is available.",
+    jp: "〇〇はありますか", reading: "〇〇は ありますか", romaji: "___ wa arimasu ka",
+    say: "傘はありますか", sayNote: "Kasa wa arimasu ka — “Do you have an umbrella?”",
+    syl: [[["___",""]], WA, [["ah","あ"],["ree","り"],["mahs","ます"]], KA],
+    situation: "Asking a shop for an item, or a restaurant for an English menu (eigo no menyū).",
+    words: [["___ wa","〇〇は","as for ___"],["arimasu","あります","to exist, to have (polite)"],["ka","か","question marker"]],
+    tip: "Arimasu is for things. For people, use imasu — as in “Eigo o hanaseru hito wa imasu ka?”"
+  },
+  {
+    id: "nihongode", cat: "basics",
+    en: "How do you say ___ in Japanese?", context: "Learning a new word from someone.",
+    jp: "〇〇は日本語で何と言いますか", reading: "〇〇は にほんごで なんと いいますか", romaji: "___ wa nihongo de nan to iimasu ka",
+    say: "これは日本語で何と言いますか", sayNote: "Kore wa nihongo de nan to iimasu ka — “What's this called in Japanese?”",
+    syl: [[["___",""]], WA, [["nee","に"],["hohn","ほん"],["goh","ご"],["deh","で"]],[["nahn","なん"],["toh","と"]],[["ee","い"],["ee","い"],["mahs","ます"]], KA],
+    situation: "Chatting with a friendly shopkeeper or host who's happy to teach you.",
+    words: [["___ wa","〇〇は","as for ___"],["nihongo de","日本語で","in Japanese"],["nan to","何と","what (as a quote)"],["iimasu ka","言いますか","do you say?"]],
+    tip: "Point at something and put kore (this) in the blank — an easy way to pick up new words."
+  },
+  {
+    id: "wanandesuka", cat: "basics",
+    en: "What is ___?", context: "Asking what a thing or place is.",
+    jp: "〇〇は何ですか", reading: "〇〇は なんですか", romaji: "___ wa nan desu ka",
+    say: "この料理は何ですか", sayNote: "Kono ryōri wa nan desu ka — “What is this dish?”",
+    syl: [[["___",""]], WA, [["nahn","なん"]], DESU, KA],
+    situation: "Pointing at a dish, a building, or something in a shop window.",
+    words: [["___ wa","〇〇は","as for ___"],["nan","何","what"],["desu ka","ですか","polite “is it?”"]],
+    tip: "Handy fill-ins: kono ryōri (this dish), ano tatemono (that building). To ask what a word means, use “___ wa dō iu imi desu ka” instead."
+  },
+  {
+    id: "itsudesuka", cat: "basics",
+    en: "When is ___?", context: "Asking when something happens.",
+    jp: "〇〇はいつですか", reading: "〇〇は いつですか", romaji: "___ wa itsu desu ka",
+    say: "次の電車はいつですか", sayNote: "Tsugi no densha wa itsu desu ka — “When is the next train?”",
+    syl: [[["___",""]], WA, [["ee","い"],["tsoo","つ"]], DESU, KA],
+    situation: "Checking the next train or bus, or when a shop or event opens.",
+    words: [["___ wa","〇〇は","as for ___"],["itsu","いつ","when"],["desu ka","ですか","polite “is it?”"]],
+    tip: "For a clock time, “___ wa nanji desu ka” (what time is ___?) often sounds more natural."
+  },
+  {
     id: "moushimasu", cat: "basics",
     en: "My name is ___.", context: "A formal way to introduce yourself.",
     jp: "〇〇と申します", reading: "〇〇と もうします", romaji: "___ to mōshimasu",
@@ -561,6 +629,15 @@ const PHRASES = [
     situation: "Introducing yourself at check-in, at a meeting, or to a host family.",
     words: [["___","〇〇","your name"],["to","と","quoting particle — “as”"],["mōshimasu","申します","am called (humble)"]],
     tip: "More formal than “___ desu”. Japanese often writes a blank as 〇〇, read “maru‑maru”."
+  },
+  {
+    id: "onamae", cat: "basics",
+    en: "What is your name?", context: "Politely asking someone's name.",
+    jp: "お名前は何ですか", reading: "おなまえは なんですか", romaji: "onamae wa nan desu ka",
+    syl: [[["oh","お"],["nah","な"],["mah","ま"],["eh","え"]], WA, [["nahn","なん"]], DESU, KA],
+    situation: "After introducing yourself to a host, a guide, or someone new.",
+    words: [["onamae","お名前","name (with polite o‑)"],["wa","は","topic marker"],["nan desu ka","何ですか","what is it?"]],
+    tip: "Japanese usually avoids saying “you” (anata) — the polite o‑ already makes it clear. Afterwards, call them by family name plus ‑san, e.g. Tanaka‑san."
   },
   {
     id: "kanada", cat: "basics",
@@ -579,6 +656,15 @@ const PHRASES = [
     situation: "Someone starts speaking quickly, or compliments your Japanese.",
     words: [["nihongo","日本語","Japanese (language)"],["wa","は","topic marker"],["sukoshi dake","少しだけ","only a little"],["hanasemasu","話せます","can speak (polite)"]],
     tip: "Expect a friendly “Jōzu desu ne!” (You're good!). The modest reply is “Iie, mada mada desu” — not yet."
+  },
+  {
+    id: "hanasemasen", cat: "basics",
+    en: "I can't speak Japanese.", context: "Letting someone know you don't speak Japanese.",
+    jp: "日本語が話せません", reading: "にほんごが はなせません", romaji: "nihongo ga hanasemasen",
+    syl: [[["nee","に"],["hohn","ほん"],["goh","ご"]],[["gah","が"]],[["hah","は"],["nah","な"],["seh","せ"],["mah","ま"],["sen","せん"]]],
+    situation: "Someone starts talking to you in Japanese on the street or in a shop.",
+    words: [["nihongo","日本語","Japanese (language)"],["ga","が","subject marker"],["hanasemasen","話せません","can't speak (polite)"]],
+    tip: "Start with “sumimasen” to soften it, then follow up with “Eigo o hanasemasu ka?”"
   },
   {
     id: "korewanan", cat: "basics",
@@ -618,6 +704,16 @@ const PHRASES = [
     situation: "At a station, restaurant, or shopping center.",
     words: [["toire","トイレ","toilet (from English)"],["wa","は","topic marker"],["doko","どこ","where"],["desu ka","ですか","polite “is it?”"]],
     tip: "Swap in any place before wa — eki (station), hoteru (hotel). Otearai is a more polite word for toilet."
+  },
+  {
+    id: "wadokodesuka", cat: "travel",
+    en: "Where is ___?", context: "Asking for any place.",
+    jp: "〇〇はどこですか", reading: "〇〇は どこですか", romaji: "___ wa doko desu ka",
+    say: "駅はどこですか", sayNote: "Eki wa doko desu ka — “Where is the station?”",
+    syl: [[["___",""]], WA, DOKO, DESU, KA],
+    situation: "Asking station staff, a shop clerk, or a passer-by.",
+    words: [["___ wa","〇〇は","as for ___"],["doko","どこ","where"],["desu ka","ですか","polite “is it?”"]],
+    tip: "Handy fill-ins: eki (station), hoteru (hotel), deguchi (exit), erebētā (elevator)."
   },
   {
     id: "densha", cat: "travel",
@@ -954,6 +1050,15 @@ const PHRASES = [
     situation: "When ordering, or before a meal at a hotel or ryokan.",
     words: [["___ no","〇〇の","to ___"],["arerugī","アレルギー","allergy"],["ga arimasu","があります","I have"]],
     tip: "Common allergens: ebi (shrimp), kani (crab), tamago (egg), gyūnyū (milk), komugi (wheat), pīnattsu (peanuts), soba (buckwheat). For a serious allergy, carry a written card in Japanese."
+  },
+  {
+    id: "nattsu", cat: "dining",
+    en: "I'm allergic to nuts.", context: "Telling staff about a nut allergy.",
+    jp: "ナッツのアレルギーがあります", romaji: "nattsu no arerugī ga arimasu",
+    syl: [[["naht","ナッ"],["tsoo","ツ"]],[["noh","の"]],[["ah","ア"],["reh","レ"],["roo","ル"],["gee","ギー"]],[["gah","が"]],[["ah","あ"],["ree","り"],["mahs","ます"]]],
+    situation: "When ordering, or before a meal at a hotel or ryokan.",
+    words: [["nattsu","ナッツ","nuts (tree nuts)"],["no","の","to, of"],["arerugī","アレルギー","allergy"],["ga arimasu","があります","I have"]],
+    tip: "Japan labels peanuts separately from tree nuts. If both are a concern, say “Pīnattsu to nattsu no arerugī ga arimasu.” For a serious allergy, carry a written card in Japanese."
   },
   {
     id: "mouhitotsu", cat: "dining",
